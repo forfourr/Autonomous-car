@@ -1,23 +1,32 @@
-import time
-import picamera
+import cv2
 
 def main():
-    try:
-        # 카메라 초기화
-        with picamera.PiCamera() as camera:
-            # 카메라 해상도 설정 (여기에서는 640x480)
-            camera.resolution = (640, 480)
-            # 카메라 프리뷰 시작
-            camera.start_preview()
+    # 웹캠 연결
+    cap = cv2.VideoCapture(0)
 
-            # 카메라 미리보기가 실행되는 동안 10초간 대기
-            time.sleep(10)
+    # 웹캠이 정상적으로 열렸는지 확인
+    if not cap.isOpened():
+        print("웹캠을 열 수 없습니다.")
+        return
 
-            # 카메라 미리보기 중지
-            camera.stop_preview()
+    while True:
+        # 프레임 읽기
+        ret, frame = cap.read()
 
-    except KeyboardInterrupt:
-        print("카메라 미리보기를 종료합니다.")
+        if not ret:
+            print("프레임을 읽을 수 없습니다.")
+            break
+
+        # 화면에 프레임 출력
+        cv2.imshow('Webcam', frame)
+
+        # 'q' 키를 누르면 종료
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # 리소스 해제
+    cap.release()
+    cv2.destroyAllWindows()
 
 if __name__ == "__main__":
     main()
