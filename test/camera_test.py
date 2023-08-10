@@ -1,32 +1,24 @@
 import cv2
+improt time
 
-def main():
-    # 웹캠 연결
-    cap = cv2.VideoCapture(0)
 
-    # 웹캠이 정상적으로 열렸는지 확인
-    if not cap.isOpened():
-        print("웹캠을 열 수 없습니다.")
-        return
+cap = cv2.VideoCapture(0)
 
-    while True:
-        # 프레임 읽기
-        ret, frame = cap.read()
+fourcc = cv2.VideoWriter_fourcc(*'XVID')
+out = cv2.VideoWriter('captured_video.avi', fourcc, 20.0, (640, 480))
 
-        if not ret:
-            print("프레임을 읽을 수 없습니다.")
-            break
+while cap.isOpened():
+    ret, frame = cap.read()
+    if not ret:
+        break
 
-        # 화면에 프레임 출력
-        cv2.imshow('Webcam', frame)
+    # 프레임 저장
+    out.write(frame)
 
-        # 'q' 키를 누르면 종료
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+    cv2.imshow('Frame', frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
 
-    # 리소스 해제
-    cap.release()
-    cv2.destroyAllWindows()
-
-if __name__ == "__main__":
-    main()
+cap.release()
+out.release()
+cv2.destroyAllWindows()
