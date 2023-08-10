@@ -1,5 +1,5 @@
 import cv2
-improt time
+import time
 
 
 cap = cv2.VideoCapture(0)
