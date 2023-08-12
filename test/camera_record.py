@@ -1,9 +1,10 @@
 import cv2
 import time
 
-
+# 카메라 열기
 cap = cv2.VideoCapture(0)
 
+# 비디오 코덱 설정
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 out = cv2.VideoWriter('captured_video.avi', fourcc, 20.0, (640, 480))
 
