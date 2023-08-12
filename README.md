@@ -18,6 +18,7 @@ CNN End-to-End Self Driving: Convolutional Neural Network (CNN)을 활용한 엔
 YOLOv5 Object Detection: You Only Look Once (YOLO) 알고리즘을 기반으로 하는 YOLOv5를 활용하여 물체 감지 기능을 구현합니다. 주변 환경에서 보행자, 차량 등의 물체를 감지하고 이를 기반으로 주행 제어를 최적화합니다.
 
 이 프로젝트는 Raspberry Pi 4와 SunFounder Deep Pi Car 키트의 조합을 통해 현실적이고 효과적인 자율주행 솔루션을 개발하는 것을 목표로 하며, 주행 안전성 및 정확성을 향상시키는 데 초점을 맞춥니다. GitHub에서 코드와 자세한 프로젝트 설명을 확인하실 수 있습니다.
+
 -------------
 ### Introduction:
 This project aims to build an autonomous driving system using Raspberry Pi 4 and the SunFounder Deep Pi Car kit. Leveraging the robust performance of Raspberry Pi 4 and the Google Edge TPU accelerator, we develop a real-time self-driving system that perceives and controls the environment.
