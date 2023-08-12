@@ -1,3 +1,6 @@
-# Autonomous-car
+# AI Self driving RC car
 
-MS-school project
+⭐MS-school project
+-----------
+
+
