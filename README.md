@@ -1,7 +1,7 @@
 # AI Self driving RC car
 
-###⭐MS-school project
------------
+### ⭐MS-school project
+
 
 ### Needs
 raspberry pi4
