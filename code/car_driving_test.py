@@ -45,10 +45,6 @@ class DeepPiCar(object):
         self.front_wheels.turning_offset = -25  # calibrate servo to center
         self.front_wheels.turn(90)  # Steering Range is 45 (left) - 90 (center) - 135 (right)
 
-        # self.lane_follower = HandCodedLaneFollower(self)
-        # self.traffic_sign_processor = ObjectsOnRoadProcessor(self)
-        ## lane_follower = DeepLearningLaneFollower()
-
 
 
     def drive(self, speed=__INITIAL_SPEED):
@@ -74,13 +70,7 @@ class DeepPiCar(object):
         cv2.destroyAllWindows()
 
 
-    def process_objects_on_road(self, image):
-        image = self.traffic_sign_processor.process_objects_on_road(image)
-        return image
 
-    def follow_lane(self, image):
-        image = self.lane_follower.follow_lane(image)
-        return image
 
 
 ############################
