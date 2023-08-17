@@ -39,8 +39,10 @@ class fileDB(object):
 						value = lines[i].split('=')[1].replace(' ', '').strip()
 						flag = True
 			if flag:
+				print(value)
 				return value
 			else:
+				print(default_value)
 				return default_value
 		except :
 			return default_value

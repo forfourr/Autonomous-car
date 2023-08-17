@@ -27,6 +27,10 @@ class Front_Wheels(object):
 		self._channel = channel
 		self._straight_angle = 85
 		self.turning_max = 45
+
+		self.test1 = 0
+		self.test2 = 180
+
 		self._turning_offset = int(self.db.get('turning_offset', default_value=0))
 
 		self.wheel = Servo.Servo(self._channel, bus_number=bus_number, offset=self.turning_offset)
@@ -35,7 +39,11 @@ class Front_Wheels(object):
 			print(self._DEBUG_INFO, 'Front wheel PWM channel:', self._channel)
 			print(self._DEBUG_INFO, 'Front wheel offset value:', self.turning_offset)
 
-		self._angle = {"left":self._min_angle, "straight":self._straight_angle+ self._min_angle, "right":self._max_angle}
+		self._angle = {"left":self._min_angle, 
+		 			"straight":self._straight_angle+ self._min_angle, 
+					"right":self._max_angle,
+					"test1":self.test1,
+					"test2":self.test2}
 		if self._DEBUG:
 			print(self._DEBUG_INFO, 'left angle: %s, straight angle: %s, right angle: %s' % (self._angle["left"], self._angle["straight"], self._angle["right"]))
 

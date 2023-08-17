@@ -3,7 +3,7 @@ import time
 import sys
 from Servo import Servo
 from back_wheels import Back_Wheels
-from front_wheels import Front_Wheels
+from front_wheel_curve_test import Front_wheels
 
 # 카메라 열기
 cap = cv2.VideoCapture(0)
@@ -19,27 +19,36 @@ a.write(90)
 
 # 주행
 back_wheels = Back_Wheels()
-front_wheels = Front_Wheels(debug=True,channel=0)
+front_wheels = Front_wheels(channel=0)
 
-front_wheels.turn_straight()
-back_wheels.backward()
+def drive(i=None):
+    while i<2:
+        front_wheels.turn_straight()
+        back_wheels.backward()
+        back_wheels.speed =70
+        time.sleep(1.5)
+
+        front_wheels.turn_left()
+        back_wheels.backward()
+        back_wheels.speed =50
+        time.sleep(1.5)
+
+
+        front_wheels.little_right()
+        back_wheels.backward()
+        back_wheels.speed =50
+        time.sleep(0.5)
+
+        front_wheels.turn_straight()
+        back_wheels.backward()
+        back_wheels.speed =70
+        time.sleep(2.8)
+
+        i+=1
+
+
 back_wheels.speed =0
-time.sleep(1.5)
 
-# front_wheels.turn_left()
-# back_wheels.backward()
-# back_wheels.speed =50
-# time.sleep(2)
-
-# front_wheels.turn_straight()
-# back_wheels.backward()
-# back_wheels.speed =70
-# time.sleep(3)
-
-
-# back_wheels.speed =0
-
-exit()
 
 while cap.isOpened():
     ret, frame = cap.read()
@@ -52,7 +61,10 @@ while cap.isOpened():
     cv2.imshow('Frame', frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
+    
+    drive(i=0)
 
+    
 cap.release()
 out.release()
 cv2.destroyAllWindows()
