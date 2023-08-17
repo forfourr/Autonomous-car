@@ -25,7 +25,7 @@ class Front_Wheels(object):
 		''' setup channels and basic stuff '''
 		self.db = filedb.fileDB(db=db)
 		self._channel = channel
-		self._straight_angle = 90
+		self._straight_angle = 85
 		self.turning_max = 45
 		self._turning_offset = int(self.db.get('turning_offset', default_value=0))
 
