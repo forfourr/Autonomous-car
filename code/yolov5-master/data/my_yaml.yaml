@@ -1,0 +1,10 @@
+train: ./dataset/train/images
+val: ./dataset/valid/images
+
+# classes
+names:
+  0: animal
+  1: car
+  2: human
+  3: limit-sign
+  4: stop-sign

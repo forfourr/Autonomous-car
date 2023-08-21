@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 5
+names: ['animal', 'car', 'human', 'limit-sign', 'stop-sign']
+
+roboflow:
+  workspace: uuu-aoo71
+  project: stop-sign-0yujx
+  version: 2
+  license: CC BY 4.0
+  url: https://universe.roboflow.com/uuu-aoo71/stop-sign-0yujx/dataset/2
