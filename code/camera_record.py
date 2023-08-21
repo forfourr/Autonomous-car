@@ -14,6 +14,9 @@ cap = cv2.VideoCapture(0)
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
 out = cv2.VideoWriter('captured_video1.avi', fourcc, 20.0, (640, 480))
 
+# fourcc = cv2.VideoWriter_fourcc(*'X264')
+# out = cv2.VideoWriter('captured_video1.mp4', fourcc, 20.0, (640, 640))
+
 # stereo 설정
 a = Servo(1)
 a.setup()
@@ -52,7 +55,7 @@ front_wheels = Front_wheels(channel=0)
 
 while cap.isOpened():
     front_wheels.turn_straight()
-    back_wheels.speed = 50
+    back_wheels.speed = 40
 
     ret, frame = cap.read()
     if not ret:

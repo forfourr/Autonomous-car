@@ -2,8 +2,8 @@ import logging
 import picar
 import cv2
 import datetime
-# from hand_coded_lane_follower import HandCodedLaneFollower
-# from objects_on_road_processor import ObjectsOnRoadProcessor
+from hand_coded_lane_follower import HandCodedLaneFollower
+from objects_on_road_processor import ObjectsOnRoadProcessor
 
 _SHOW_IMAGE = True
 
@@ -42,20 +42,20 @@ class DeepPiCar(object):
         self.front_wheels.turning_offset = -25  # calibrate servo to center
         self.front_wheels.turn(90)  # Steering Range is 45 (left) - 90 (center) - 135 (right)
 
-        # self.lane_follower = HandCodedLaneFollower(self)
-        # self.traffic_sign_processor = ObjectsOnRoadProcessor(self)
-        ## lane_follower = DeepLearningLaneFollower()
+        self.lane_follower = HandCodedLaneFollower(self)
+        self.traffic_sign_processor = ObjectsOnRoadProcessor(self)
+        # lane_follower = DeepLearningLaneFollower()
 
-        # self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
-        # datestr = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-        # self.video_orig = self.create_video_recorder('../data/tmp/car_video%s.avi' % datestr)
-        # self.video_lane = self.create_video_recorder('../data/tmp/car_video_lane%s.avi' % datestr)
-        # self.video_objs = self.create_video_recorder('../data/tmp/car_video_objs%s.avi' % datestr)
+        self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
+        datestr = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
+        self.video_orig = self.create_video_recorder('../data/tmp/car_video%s.avi' % datestr)
+        self.video_lane = self.create_video_recorder('../data/tmp/car_video_lane%s.avi' % datestr)
+        self.video_objs = self.create_video_recorder('../data/tmp/car_video_objs%s.avi' % datestr)
 
-        # logging.info('Created a DeepPiCar')
+        logging.info('Created a DeepPiCar')
 
-    # def create_video_recorder(self, path):
-    #     return cv2.VideoWriter(path, self.fourcc, 20.0, (self.__SCREEN_WIDTH, self.__SCREEN_HEIGHT))
+    def create_video_recorder(self, path):
+        return cv2.VideoWriter(path, self.fourcc, 20.0, (self.__SCREEN_WIDTH, self.__SCREEN_HEIGHT))
 
     def __enter__(self):
         """ Entering a with statement """
@@ -75,9 +75,9 @@ class DeepPiCar(object):
         self.back_wheels.speed = 0
         self.front_wheels.turn(90)
         self.camera.release()
-        # self.video_orig.release()
-        # self.video_lane.release()
-        # self.video_objs.release()
+        self.video_orig.release()
+        self.video_lane.release()
+        self.video_objs.release()
         cv2.destroyAllWindows()
 
     def drive(self, speed=__INITIAL_SPEED):
