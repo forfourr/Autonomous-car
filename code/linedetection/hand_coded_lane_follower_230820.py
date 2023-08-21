@@ -65,40 +65,11 @@ def detect_lane(frame):
 
     return lane_lines, lane_lines_image
 
-
+# Canny -> 엣지 감지
 def detect_edges(frame):
-    # filter for blue lane lines
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    show_image("hsv", hsv)
-    # lower_blue = np.array([30, 40, 0])
-    # upper_blue = np.array([150, 255, 255])
-    # mask = cv2.inRange(hsv, lower_blue, upper_blue)
-    # show_image("blue mask", mask)
-
-    # detect edges
-    edges = cv2.Canny(hsv, 200, 400)
-
-    return edges
-
-def detect_edges_old(frame):
-    # filter for blue lane lines
-    hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    show_image("hsv", hsv)
-    for i in range(16):
-        lower_blue = np.array([30, 16 * i, 0])
-        upper_blue = np.array([150, 255, 255])
-        mask = cv2.inRange(hsv, lower_blue, upper_blue)
-        show_image("blue mask Sat=%s" % (16* i), mask)
-
-
-    #for i in range(16):
-        #lower_blue = np.array([16 * i, 40, 50])
-        #upper_blue = np.array([150, 255, 255])
-        #mask = cv2.inRange(hsv, lower_blue, upper_blue)
-       # show_image("blue mask hue=%s" % (16* i), mask)
-
-        # detect edges
-    edges = cv2.Canny(mask, 200, 400)
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    show_image("hsv", gray)
+    edges = cv2.Canny(gray, 200, 400)   # threshold1,2로 엣지 추출
 
     return edges
 
@@ -200,13 +171,16 @@ def compute_steering_angle(frame, lane_lines):
     if len(lane_lines) == 0:
         logging.info('No lane lines detected, do nothing')
         return -90
-
     height, width, _ = frame.shape
+
+    # 주행할 가운데 선 찾기
     if len(lane_lines) == 1:
         logging.debug('Only detected one lane line, just follow it. %s' % lane_lines[0])
-        x1, _, x2, _ = lane_lines[0][0]
+        x1, _, x2, _ = lane_lines[0][0] #[-465, 930, 72, 465]
         x_offset = x2 - x1
     else:
+        # [[[-465, 930, 72, 465]], 
+        #   [[1866, 930, 1326, 465]]]
         _, _, left_x2, _ = lane_lines[0][0]
         _, _, right_x2, _ = lane_lines[1][0]
         camera_mid_offset_percent = 0.02 # 0.0 means car pointing to center, -0.03: car is centered to left, +0.03 means car pointing to right
@@ -216,9 +190,9 @@ def compute_steering_angle(frame, lane_lines):
     # find the steering angle, which is angle between navigation direction to end of center line
     y_offset = int(height / 2)
 
-    angle_to_mid_radian = math.atan(x_offset / y_offset)  # angle (in radian) to center vertical line
-    angle_to_mid_deg = int(angle_to_mid_radian * 180.0 / math.pi)  # angle (in degrees) to center vertical line
-    steering_angle = angle_to_mid_deg + 90  # this is the steering angle needed by picar front wheel
+    angle_to_mid_radian = math.atan(x_offset / y_offset)  #라디안 변환
+    angle_to_mid_deg = int(angle_to_mid_radian * 180.0 / math.pi)
+    steering_angle = angle_to_mid_deg + 125     # steering에서 front_wheel의 직진 각도는 125이기때문에
 
     logging.debug('new steering angle: %s' % steering_angle)
     return steering_angle
@@ -232,10 +206,10 @@ def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_of_lan
     """
     if num_of_lane_lines == 2 :
         # if both lane lines detected, then we can deviate more
-        max_angle_deviation = max_angle_deviation_two_lines
+        max_angle_deviation = max_angle_deviation_two_lines # 5
     else :
         # if only one lane detected, don't deviate too much
-        max_angle_deviation = max_angle_deviation_one_lane
+        max_angle_deviation = max_angle_deviation_one_lane  # 1
     
     angle_deviation = new_steering_angle - curr_steering_angle
     if abs(angle_deviation) > max_angle_deviation:
@@ -353,8 +327,11 @@ def test_video(video_file):
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-
-    test_video('./RC_car_230818.mp4')
+    path = 'code/linedetection/test.png'
+    frame = cv2.imread(path)
+    lane_lines,_ = detect_lane(frame)
+    print(lane_lines)
+    #test_video('./captured_video1.avi')
     #test_photo('/home/pi/DeepPiCar/driver/data/video/car_video_190427_110320_073.png')
     #test_photo(sys.argv[1])
     #test_video(sys.argv[1])
