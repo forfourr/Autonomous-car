@@ -10,8 +10,8 @@ _SHOW_IMAGE = True
 class DeepPiCar(object):
 
     __INITIAL_SPEED = 0
-    __SCREEN_WIDTH = 320
-    __SCREEN_HEIGHT = 240
+    __SCREEN_WIDTH = 640
+    __SCREEN_HEIGHT = 480
 
     def __init__(self):
         """ Init camera and wheels"""

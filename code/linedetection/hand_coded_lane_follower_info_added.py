@@ -195,7 +195,7 @@ def compute_steering_angle(frame, lane_lines):
     # 만일 탐지된 lane이 없다면 왼쪽으로 핸들을 완벽하게 틀도록 설정
     if len(lane_lines) == 0:
         logging.info('No lane lines detected, do nothing')
-        return -90
+        return 180
     
     # 차선 1개를 탐지했다면, 해당 차선의 좌표를 기반으로 조향 각을 계산 
     # 차선 2개를 탐지했다면, 차량이 중앙으로 정렬되도록 하기 위해 두 차선의 중심점을 계산하고 이를 기반으로 조향각을 계산.

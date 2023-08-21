@@ -14,7 +14,7 @@ class Front_wheels(object):
 
         self.angle_list = {
             'Left':0,
-            'Right':200,
+            'Right':250,
             'Straight':125,
             'little_right':150,
             'little_left':30
