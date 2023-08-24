@@ -5,7 +5,6 @@ import datetime
 import time
 import PCA9685
 from hand_coded_lane_follower_230820 import HandCodedLaneFollower
-from edgetpu.detection.engine import DetectionEngine
 
 
 _SHOW_IMAGE = True
@@ -48,8 +47,6 @@ class DeepPiCar(object):
         self.front_wheels.turning_offset = 125  # calibrate servo to center
         self.front_wheels.turn(90)  # Steering Range is 45 (left) - 90 (center) - 135 (right)
 
-        # google TPU 사용
-        self.tpu_engine = DetectionEngine('/path/to/model.tflite')
 
 
         # 주행 알고리즘 / 객체인식 수행
@@ -112,8 +109,6 @@ class DeepPiCar(object):
 
                 # 주행
                 image_lane = self.follow_lane(image_lane)
-                image_lane = self.process_objects_with_tpu(image_lane)
-                
 
                 # FPS
                 elapse_time = time.time() - start_time
