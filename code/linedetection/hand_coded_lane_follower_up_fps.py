@@ -5,7 +5,7 @@ import datetime
 import time
 import PCA9685
 import threading
-from hand_coded_lane_follower import HandCodedLaneFollower
+from code.linedetection.hand_coded_lane_follower_up_fps import HandCodedLaneFollower
 
 
 _SHOW_IMAGE = True
