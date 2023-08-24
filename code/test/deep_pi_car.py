@@ -3,7 +3,10 @@ import picar
 import cv2
 import datetime
 import time
+import PCA9685
 from hand_coded_lane_follower_230820 import HandCodedLaneFollower
+from edgetpu.detection.engine import DetectionEngine
+
 
 _SHOW_IMAGE = True
 _SAVE_VIDEO = False
@@ -18,9 +21,12 @@ class DeepPiCar(object):
         """ Init camera and wheels"""
         logging.info('Creating a DeepPiCar...')
 
-        picar.setup()
+        # picar.setup()
+        pwm=PCA9685.PWM(bus_number=1)
+        pwm.setup()
+        pwm.frequency = 60
 
-        logging.debug('Set up camera')
+        # set up camera
         self.camera = cv2.VideoCapture(-1)
         self.camera.set(3, self.__SCREEN_WIDTH)
         self.camera.set(4, self.__SCREEN_HEIGHT)
@@ -42,10 +48,16 @@ class DeepPiCar(object):
         self.front_wheels.turning_offset = 125  # calibrate servo to center
         self.front_wheels.turn(90)  # Steering Range is 45 (left) - 90 (center) - 135 (right)
 
+        # google TPU 사용
+        self.tpu_engine = DetectionEngine('/path/to/model.tflite')
+
+
+        # 주행 알고리즘 / 객체인식 수행
         self.lane_follower = HandCodedLaneFollower(self)
         # self.traffic_sign_processor = ObjectsOnRoadProcessor(self)
         # lane_follower = DeepLearningLaneFollower()
 
+        # 비디오 저장
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         datestr = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
         self.video_orig = self.create_video_recorder('../data/tmp/car_video%s.avi' % datestr)
@@ -100,6 +112,7 @@ class DeepPiCar(object):
 
                 # 주행
                 image_lane = self.follow_lane(image_lane)
+                image_lane = self.process_objects_with_tpu(image_lane)
                 
 
                 # FPS
