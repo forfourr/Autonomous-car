@@ -2,22 +2,27 @@ import logging
 import picar
 import cv2
 import datetime
-from hand_coded_lane_follower_info_added import HandCodedLaneFollower
+import PCA9685
+from hand_coded_lane_follower_230820 import HandCodedLaneFollower
 
 _SHOW_IMAGE = True
-
+_SAVE_IMAGE = False
 
 class DeepPiCar(object):
 
     __INITIAL_SPEED = 0
-    __SCREEN_WIDTH = 640
-    __SCREEN_HEIGHT = 480
+    __SCREEN_WIDTH = 320
+    __SCREEN_HEIGHT = 240
 
     def __init__(self):
         """ Init camera and wheels"""
         logging.info('Creating a DeepPiCar...')
 
-        picar.setup()
+        # picar 코드 setup 부분을 가져옴 
+        #picar.setup()
+        pwm=PCA9685.PWM(bus_number=1)
+        pwm.setup()
+        pwm.frequency = 60
 
         logging.debug('Set up camera')
         self.camera = cv2.VideoCapture(-1)
@@ -25,12 +30,12 @@ class DeepPiCar(object):
         self.camera.set(4, self.__SCREEN_HEIGHT)
 
         self.pan_servo = picar.Servo.Servo(1)
-        self.pan_servo.offset = -30  # calibrate servo to center
+        self.pan_servo.offset = -30  # 좌우
         self.pan_servo.write(90)
 
         self.tilt_servo = picar.Servo.Servo(2)
-        self.tilt_servo.offset = 20  # calibrate servo to center
-        self.tilt_servo.write(90)
+        self.tilt_servo.offset = 20  # 위아래
+        self.tilt_servo.write(110)
 
         logging.debug('Set up back wheels')
         self.back_wheels = picar.back_wheels.Back_Wheels()
@@ -47,16 +52,17 @@ class DeepPiCar(object):
 
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         datestr = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-        self.video_orig = self.create_video_recorder('../data/tmp/car_video%s.avi' % datestr)
-        self.video_lane = self.create_video_recorder('../data/tmp/car_video_lane%s.avi' % datestr)
-        self.video_objs = self.create_video_recorder('../data/tmp/car_video_objs%s.avi' % datestr)
+        self.video_orig = self.create_video_recorder('code/test/data/car_video%s.avi' % datestr)
+        self.video_lane = self.create_video_recorder('code/test/data/car_video_lane%s.avi' % datestr)
+        self.video_objs = self.create_video_recorder('code/test/data/car_video_objs%s.avi' % datestr)
 
         logging.info('Created a DeepPiCar')
 
-    def create_video_recorder(self, path):
-        return cv2.VideoWriter(path, self.fourcc, 20.0, (self.__SCREEN_WIDTH, self.__SCREEN_HEIGHT))
+    def create_video_recorder(self, path, save=_SAVE_IMAGE):
+        if save:
+            return cv2.VideoWriter(path, self.fourcc, 20.0, (self.__SCREEN_WIDTH, self.__SCREEN_HEIGHT))
 
-    def __enter__(self):
+    '''def __enter__(self):
         """ Entering a with statement """
         return self
 
@@ -66,7 +72,7 @@ class DeepPiCar(object):
             # Exception occurred:
             logging.error('Exiting with statement with exception %s' % traceback)
 
-        self.cleanup()
+        self.cleanup()'''
 
     def cleanup(self):
         """ Reset the hardware"""
@@ -74,18 +80,12 @@ class DeepPiCar(object):
         self.back_wheels.speed = 0
         self.front_wheels.turn(90)
         self.camera.release()
-        self.video_orig.release()
-        self.video_lane.release()
-        self.video_objs.release()
+        # self.video_orig.release()
+        # self.video_lane.release()
+        # self.video_objs.release()
         cv2.destroyAllWindows()
 
     def drive(self, speed=__INITIAL_SPEED):
-        """ Main entry point of the car, and put it in drive mode
-
-        Keyword arguments:
-        speed -- speed of back wheel, range is 0 (stop) - 100 (fastest)
-        """
-
         logging.info('Starting to drive at speed %s...' % speed)
         self.back_wheels.speed = speed
         i = 0

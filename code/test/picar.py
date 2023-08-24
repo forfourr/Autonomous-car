@@ -10,7 +10,7 @@ def servo_install():
     delay = 1.0/180
     if len(sys.argv) >= 3:
         print("servo-install takes no value")
-        usage()
+        
     print("Servo now is set to 90 degree.")
     servo0 = Servo.Servo(0, bus_number=1)
     servo1 = Servo.Servo(1, bus_number=1)
@@ -39,7 +39,7 @@ def servo_install():
     while True:
         time.sleep(1)
 
-def main():
+'''def main():
     setup()
     if len(sys.argv) >= 2:
         if sys.argv[1] == "servo-install":
@@ -71,7 +71,7 @@ def usage():
     print("  servo-install              Set 16 channel servos to 90 degree for installation")
     print("  front-wheel-test [chn]     Test the steering servo connect to chn, chn default 0")
     print("  rear-wheel-test            Test the rear wheel")
-    quit()
+    quit()'''
 
 # class ADC(PCF8591.PCF8591):
 #     pass
