@@ -4,6 +4,7 @@ import cv2
 import datetime
 import time
 import PCA9685
+import threading
 from hand_coded_lane_follower_230820 import HandCodedLaneFollower
 
 
@@ -47,7 +48,7 @@ class DeepPiCar(object):
         self.front_wheels.turning_offset = 125  # calibrate servo to center
         self.front_wheels.turn(90)  # Steering Range is 45 (left) - 90 (center) - 135 (right)
 
-
+        self.back_wheels.speed = 
 
         # 주행 알고리즘 / 객체인식 수행
         self.lane_follower = HandCodedLaneFollower(self)
@@ -89,12 +90,8 @@ class DeepPiCar(object):
         self.video_objs.release()
         cv2.destroyAllWindows()
 
-    def drive(self, speed=__INITIAL_SPEED):
-        """ Main entry point of the car, and put it in drive mode
 
-        Keyword arguments:
-        speed -- speed of back wheel, range is 0 (stop) - 100 (fastest)
-        """
+    def drive(self, speed=__INITIAL_SPEED):
 
         logging.info('Starting to drive at speed %s...' % speed)
         self.back_wheels.speed = speed
@@ -137,7 +134,40 @@ class DeepPiCar(object):
     def follow_lane(self, image):
         image = self.lane_follower.follow_lane(image)
         return image
+    
+# 멀티 스레딩
+def image_processing_thread(car):
+    
+    while car.camera.isOpened():
+        start_time = time.time()
+        try:
+            _, image_lane = car.camera.read()
+            image_objs = image_lane.copy()
+            
+            # image_objs = self.process_objects_on_road(image_objs)
+            # show_image('Detected Objects', image_objs)
 
+            # 주행
+            image_lane = car.follow_lane(image_lane)
+
+            # FPS
+            elapse_time = time.time() - start_time
+            fps = 1/elapse_time
+            
+            cv2.putText(image_lane, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            show_image('Lane Lines', image_lane)
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                car.cleanup()
+                break
+
+            if _SAVE_VIDEO:
+                car.video_orig.write(image_lane)
+                car.video_lane.write(image_lane)
+                car.video_objs.write(image_objs)
+        
+        except:
+            print('fail')
 
 ############################
 # Utility Functions
@@ -149,7 +179,10 @@ def show_image(title, frame, show=_SHOW_IMAGE):
 
 def main():
     with DeepPiCar() as car:
-        car.drive(40)
+            image_thread = threading.Thread(target=image_processing_thread, args=(car,))
+            image_thread.start()
+            car.drive(40)
+            image_thread.join()
 
 
 if __name__ == '__main__':
