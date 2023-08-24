@@ -1,9 +1,0 @@
-0000000000000000000000000000000000000000 7c80c549ee4bf405ed31f7d9a9c24305c01c4782 forfourr <iiilee0404@gmail.com> 1692102003 +0900	branch: Created from origin/final
-7c80c549ee4bf405ed31f7d9a9c24305c01c4782 90ecae8d15a30e6706c9e9e86309758297630786 forfourr <iiilee0404@gmail.com> 1692102016 +0900	merge HY: Fast-forward
-90ecae8d15a30e6706c9e9e86309758297630786 e539f27ca0da16154e033bab93bee296b0b1419b forfourr <iiilee0404@gmail.com> 1692102115 +0900	commit: 캐시 삭제
-e539f27ca0da16154e033bab93bee296b0b1419b 41e9c986b3338c132f304bd1a67041881b57909b forfourr <iiilee0404@gmail.com> 1692259135 +0900	commit: 주행 비디오 test
-41e9c986b3338c132f304bd1a67041881b57909b 67f03bc94145abc647a7d6b92f304b45b0a1768a forfourr <iiilee0404@gmail.com> 1692272501 +0900	commit: 주행 카메라 테스트 중
-67f03bc94145abc647a7d6b92f304b45b0a1768a f2dd0fbcef5c9069dccedd17f67ba7233cd9e0a5 forfourr <iiilee0404@gmail.com> 1692582603 +0900	commit: 카메라 주행(수동) 영상 직진
-f2dd0fbcef5c9069dccedd17f67ba7233cd9e0a5 b9afe40015d69cf5bcead4aae7effbb00d90234d forfourr <iiilee0404@gmail.com> 1692582703 +0900	commit: gitignore
-b9afe40015d69cf5bcead4aae7effbb00d90234d bbe5e448f86d56cbb8656c8e86884f06692bd158 forfourr <iiilee0404@gmail.com> 1692582812 +0900	commit: 캐시삭제
-bbe5e448f86d56cbb8656c8e86884f06692bd158 094d91dec90ca0e02fa6e98ee85bb0282aa65370 forfourr <iiilee0404@gmail.com> 1692582976 +0900	merge main: Fast-forward
