@@ -83,51 +83,21 @@ def detect_edges(frame):
 def detect_edges_old(frame):
     # filter for blue lane lines
     hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-    show_image("hsv", hsv)
-    for i in range(16):
-        lower_blue = np.array([30, 16 * i, 0])
-        upper_blue = np.array([150, 255, 255])
-        mask = cv2.inRange(hsv, lower_blue, upper_blue)
-        show_image("blue mask Sat=%s" % (16* i), mask)
-
-
-    #for i in range(16):
-        #lower_blue = np.array([16 * i, 40, 50])
-        #upper_blue = np.array([150, 255, 255])
-        #mask = cv2.inRange(hsv, lower_blue, upper_blue)
-       # show_image("blue mask hue=%s" % (16* i), mask)
-
-        # detect edges
-    edges = cv2.Canny(mask, 200, 400)
-
+    edges = cv2.Canny(hsv, 200, 400)
     return edges
 
 
 def region_of_interest(canny):
     height, width = canny.shape
     mask = np.zeros_like(canny)
-
-    # only focus bottom half of the screen
-
-    polygon1 = np.array([[
-        (0, height),
-        (0, height * 1/5),
-        (width * 1/2, height * 1/5),
-        (width * 1/2, height),
-    ]], np.int32)
-
-    polygon2 = np.array([[
-        (width * 1/2, height),
-        (width * 1/2, height * 1/5),
-        (width, height * 1/5),
-        (width, height),
-    ]], np.int32)
-    
-    cv2.fillPoly(mask, polygon1, 255)
-    cv2.fillPoly(mask, polygon2, 255)
-    show_image("mask", mask)
+    polygons = np.array([
+        [(0, height), (0, height * 1/5), (width * 1/2, height * 1/5), (width * 1/2, height)],
+        [(width * 1/2, height), (width * 1/2, height * 1/5), (width, height * 1/5), (width, height)]
+    ], np.int32)
+    cv2.fillPoly(mask, polygons, 255)
     masked_image = cv2.bitwise_and(canny, mask)
     return masked_image
+
 
 
 def detect_line_segments(cropped_edges):
@@ -138,20 +108,11 @@ def detect_line_segments(cropped_edges):
     line_segments = cv2.HoughLinesP(cropped_edges, rho, angle, min_threshold, np.array([]), minLineLength=8,
                                     maxLineGap=4)
 
-    if line_segments is not None:
-        for line_segment in line_segments:
-            logging.debug('detected line_segment:')
-            logging.debug("%s of length %s" % (line_segment, length_of_line_segment(line_segment[0])))
-
     return line_segments
 
 
 def average_slope_intercept(frame, line_segments):
-    """
-    This function combines line segments into one or two lane lines
-    If all line slopes are < 0: then we only have detected left lane
-    If all line slopes are > 0: then we only have detected right lane
-    """
+
     lane_lines = []
     if line_segments is None:
         logging.info('No line_segment segments detected')
@@ -306,55 +267,3 @@ def make_points(frame, line):
     x2 = max(-width, min(2 * width, int((y2 - intercept) / slope)))
     return [[x1, y1, x2, y2]]
 
-
-############################
-# Test Functions
-############################
-def test_photo(file):
-    land_follower = HandCodedLaneFollower()
-    frame = cv2.imread(file)
-    combo_image = land_follower.follow_lane(frame)
-    show_image('final', combo_image, True)
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-
-def test_video(video_file):
-    lane_follower = HandCodedLaneFollower()
-    cap = cv2.VideoCapture(video_file)
-    os.makedirs("frame_image", exist_ok=True)
-    # skip first second of video.
-    for i in range(3):
-        _, frame = cap.read()
-
-    video_type = cv2.VideoWriter_fourcc(*'mp4v')
-    video_overlay = cv2.VideoWriter("%s_overlay.mp4" % (video_file), video_type, 20.0, (320, 240))
-    try:
-        i = 0
-        while cap.isOpened():
-            _, frame = cap.read()
-            print('frame %s' % i )
-            combo_image= lane_follower.follow_lane(frame)
-            
-            cv2.imwrite("./frame_image/%s_%03d_%03d.png" % (video_file, i, lane_follower.curr_steering_angle), frame)
-            
-            cv2.imwrite("./frame_image/%s_overlay_%03d.png" % (video_file, i), combo_image)
-            video_overlay.write(combo_image)
-            cv2.imshow("Road with Lane line", combo_image)
-
-            i += 1
-            if cv2.waitKey(10) & 0xFF == ord('q'):
-                break
-    finally:
-        cap.release()
-        video_overlay.release()
-        cv2.destroyAllWindows()
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-
-    test_video('./RC_car_230818.mp4')
-    #test_photo('/home/pi/DeepPiCar/driver/data/video/car_video_190427_110320_073.png')
-    #test_photo(sys.argv[1])
-    #test_video(sys.argv[1])

@@ -3,7 +3,7 @@ import picar
 import cv2
 import datetime
 import time
-from hand_coded_lane_follower_info_added import HandCodedLaneFollower
+from hand_coded_lane_follower_230820 import HandCodedLaneFollower
 
 _SHOW_IMAGE = True
 _SAVE_VIDEO = False
@@ -11,8 +11,8 @@ _SAVE_VIDEO = False
 class DeepPiCar(object):
 
     __INITIAL_SPEED = 0
-    __SCREEN_WIDTH = 640
-    __SCREEN_HEIGHT = 480
+    __SCREEN_WIDTH = 320
+    __SCREEN_HEIGHT = 240
 
     def __init__(self):
         """ Init camera and wheels"""
