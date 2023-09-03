@@ -1,5 +1,5 @@
 import sys
-import front_wheels
+import front_wheel_curve_test
 import back_wheels
 import Servo
 import PCF8591
@@ -10,7 +10,7 @@ def servo_install():
     delay = 1.0/180
     if len(sys.argv) >= 3:
         print("servo-install takes no value")
-        usage()
+        
     print("Servo now is set to 90 degree.")
     servo0 = Servo.Servo(0, bus_number=1)
     servo1 = Servo.Servo(1, bus_number=1)
@@ -39,7 +39,7 @@ def servo_install():
     while True:
         time.sleep(1)
 
-def main():
+'''def main():
     setup()
     if len(sys.argv) >= 2:
         if sys.argv[1] == "servo-install":
@@ -52,11 +52,11 @@ def main():
                     print("chn must be integer")
                     usage()
                 if 0 <= chn <= 15 :
-                    front_wheels.test(chn)
+                    front_wheel_curve_test.test(chn)
                 else:
                     print('chn must be in 0~15, not "%s"' % chn)
                     usage()
-            front_wheels.test()
+            front_wheel_curve_test.test()
         elif sys.argv[1] == "rear-wheel-test":
             back_wheels.test()
         else:
@@ -71,7 +71,7 @@ def usage():
     print("  servo-install              Set 16 channel servos to 90 degree for installation")
     print("  front-wheel-test [chn]     Test the steering servo connect to chn, chn default 0")
     print("  rear-wheel-test            Test the rear wheel")
-    quit()
+    quit()'''
 
 # class ADC(PCF8591.PCF8591):
 #     pass
