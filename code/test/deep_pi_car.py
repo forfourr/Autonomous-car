@@ -112,7 +112,8 @@ class DeepPiCar(object):
                 fps = 1/elapse_time
                 
                 cv2.putText(image_lane, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                show_image('Lane Lines', image_lane)
+                #show_image('Lane Lines', image_lane)
+                cv2.imshow('Lane Lines', image_lane)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     self.cleanup()
@@ -141,9 +142,9 @@ class DeepPiCar(object):
 ############################
 # Utility Functions
 ############################
-def show_image(title, frame, show=_SHOW_IMAGE):
-    if show:
-        cv2.imshow(title, frame)
+# def show_image(title, frame, show=_SHOW_IMAGE):
+#     if show:
+#         cv2.imshow(title, frame)
 
 
 def main():
