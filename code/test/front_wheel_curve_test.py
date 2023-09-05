@@ -60,7 +60,7 @@ if __name__ == '__main__':
     
     # test
     Front_wheels = Front_wheels(channel=0)
-    '''    
+    
     print("Left")
     Front_wheels.turn_left()
     time.sleep(2)
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     print("Right")
     Front_wheels.turn_right()
     time.sleep(2)
-    '''
+    
     print('Straight')
     Front_wheels.turn_straight()
     time.sleep(2)

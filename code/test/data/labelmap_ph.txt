@@ -1,0 +1,7 @@
+Green Traffic Light
+Person
+Red Traffic Light
+Speed Limit 25
+Speed Limit 40
+Stop Sign
+EOF
