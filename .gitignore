@@ -1,3 +1,5 @@
 code/__pycache__
 
 *.avi
+
+*.pyc
