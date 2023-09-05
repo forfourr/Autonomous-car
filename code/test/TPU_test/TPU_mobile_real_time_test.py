@@ -10,25 +10,16 @@ from pycoral.utils.edgetpu import make_interpreter
 from pycoral.utils.edgetpu import run_inference
  
 def main():
-    default_model_dir = '/home/pi/AI-self-driving-RC-car/code'
-    default_model = 'test/data/yolov4-tiny-relu-new_coords-int8_edgetpu.tflite'
-    default_labels = 'test/data/yolov3_tiny_labels.txt'
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--model', help='.tflite model path',
-                        default=os.path.join(default_model_dir,default_model))
-    parser.add_argument('--labels', help='label file path',
-                        default=os.path.join(default_model_dir, default_labels))
-    parser.add_argument('--top_k', type=int, default=10,
-                        help='number of categories with highest score to display')
-    parser.add_argument('--camera_idx', type=int, help='Index of which video source to use. ', default = 0)
-    parser.add_argument('--threshold', type=float, default=0.1,
-                        help='classifier score threshold')
-    args = parser.parse_args()
- 
-    print('Loading {} with {} labels.'.format(args.model, args.labels))
-    interpreter = make_interpreter(args.model)
+    
+    model = '/home/pi/AI-self-driving-RC-car/code/test/data/mobilenet_v2_haram.tflite'
+    labels = '/home/pi/AI-self-driving-RC-car/code/test/data/labelmap_haram.txt'
+    top_k = 10
+    threshold = 0.1
+
+    print('Loading {} with {} labels.'.format(model, labels))
+    interpreter = make_interpreter(model)
     interpreter.allocate_tensors()
-    labels = read_label_file(args.labels)
+    labels = read_label_file(labels)
     inference_size = input_size(interpreter)
  
     #cap = cv2.VideoCapture(args.camera_idx)
@@ -46,7 +37,7 @@ def main():
             cv2_im_rgb = cv2.cvtColor(cv2_im, cv2.COLOR_BGR2RGB)
             cv2_im_rgb = cv2.resize(cv2_im_rgb, inference_size)
             run_inference(interpreter, cv2_im_rgb.tobytes())
-            objs = get_objects(interpreter, args.threshold)[:args.top_k]
+            objs = get_objects(interpreter, threshold)[:top_k]
             cv2_im = append_objs_to_img(cv2_im, inference_size, objs, labels)
 
             # FPS
