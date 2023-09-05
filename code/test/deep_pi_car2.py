@@ -5,8 +5,7 @@ import datetime
 import time
 import PCA9685
 import threading
-from hand_coded_lane_follower_230825 import HandCodedLaneFollower
-from objects_on_road_processor import ObjectsOnRoadProcessor
+from hand_coded_lane_follower_230905 import HandCodedLaneFollower
 
 
 _SHOW_IMAGE = True
@@ -28,8 +27,7 @@ class DeepPiCar(object):
         pwm.frequency = 60
 
         # set up camera
-        # self.camera = cv2.VideoCapture(-1)
-        # self.camera = cv2.VideoCapture('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/object2.avi')
+        #self.camera = cv2.VideoCapture(-1)
         self.camera = cv2.VideoCapture('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/test.avi')
         self.camera.set(3, self.__SCREEN_WIDTH)
         self.camera.set(4, self.__SCREEN_HEIGHT)
@@ -55,15 +53,15 @@ class DeepPiCar(object):
 
         # 주행 알고리즘 / 객체인식 수행
         self.lane_follower = HandCodedLaneFollower(self)
-        self.traffic_sign_processor = ObjectsOnRoadProcessor(self)
+        # self.traffic_sign_processor = ObjectsOnRoadProcessor(self)
         # lane_follower = DeepLearningLaneFollower()
 
         # 비디오 저장
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         datestr = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-        self.video_orig = self.create_video_recorder('code/test/data/tmp/car_video%s.avi' % datestr)
-        self.video_lane = self.create_video_recorder('code/test/data/tmp/car_video_lane%s.avi' % datestr)
-        self.video_objs = self.create_video_recorder('code/test/data/tmp/car_video_objs%s.avi' % datestr)
+        self.video_orig = self.create_video_recorder('../data/tmp/car_video%s.avi' % datestr)
+        self.video_lane = self.create_video_recorder('../data/tmp/car_video_lane%s.avi' % datestr)
+        self.video_objs = self.create_video_recorder('../data/tmp/car_video_objs%s.avi' % datestr)
 
         logging.info('Created a DeepPiCar')
 
@@ -104,44 +102,47 @@ class DeepPiCar(object):
                 _, image_lane = self.camera.read()
                 image_objs = image_lane.copy()
                 
-                image = self.traffic_sign_processor.process_objects_on_road(image_lane)
-                # cv2.imshow('Detected Objects', image_objs)
+                # image_objs = self.process_objects_on_road(image_objs)
                 # show_image('Detected Objects', image_objs)
 
                 # 주행
-                # image = self.lane_follower.follow_lane(image_objs)
+                image_lane = self.follow_lane(image_lane)
 
                 # FPS
                 elapse_time = time.time() - start_time
                 fps = 1/elapse_time
                 
-                cv2.putText(image, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                #show_image('Lane Lines', image_lane)
-                cv2.imshow('Lane Lines', image)
+                cv2.putText(image_lane, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+                show_image('Lane Lines', image_lane)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     self.cleanup()
                     break
 
-                # if _SAVE_VIDEO:
-                #     self.video_orig.write(image_lane)
-                #     self.video_lane.write(image_lane)
-                #     self.video_objs.write(image_objs)
+                if _SAVE_VIDEO:
+                    self.video_orig.write(image_lane)
+                    self.video_lane.write(image_lane)
+                    self.video_objs.write(image_objs)
             
-            except Exception as e:
-                print('Exception:', e)
+            except:
                 print('fail')
-                break
 
 
+    # def process_objects_on_road(self, image):
+    #     image = self.traffic_sign_processor.process_objects_on_road(image)
+    #     return image
+
+    def follow_lane(self, image):
+        image = self.lane_follower.follow_lane(image)
+        return image
 
 
 ############################
 # Utility Functions
 ############################
-# def show_image(title, frame, show=_SHOW_IMAGE):
-#     if show:
-#         cv2.imshow(title, frame)
+def show_image(title, frame, show=_SHOW_IMAGE):
+    if show:
+        cv2.imshow(title, frame)
 
 
 def main():
