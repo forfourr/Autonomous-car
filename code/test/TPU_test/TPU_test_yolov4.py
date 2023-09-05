@@ -1,149 +1,122 @@
-import argparse
 import time
-import os
-import cv2
-from PIL import Image
-from PIL import ImageDraw
-import traceback
-from yolov4 import filter_boxes
-import numpy as np
 import tensorflow as tf
+# physical_devices = tf.config.experimental.list_physical_devices('GPU')
+# if len(physical_devices) > 0:
+#     tf.config.experimental.set_memory_growth(physical_devices[0], True)
 
-from pycoral.adapters import common
-from pycoral.adapters import detect
-from pycoral.utils.dataset import read_label_file
+import utils as utils
+from yolov4 import filter_boxes
+# from tensorflow.python.saved_model import tag_constants
+from PIL import Image
+import cv2
+import numpy as np
+import time
+# from tensorflow.compat.v1 import ConfigProto
+# from tensorflow.compat.v1 import InteractiveSession
+# from imutils.video import FPS
+
+
 from pycoral.utils.edgetpu import make_interpreter
 
 
-def main():
-    # os.chdir('/home/pi/DeepPiCar/models/object_detection')
-    
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-      '--model', help='File path of Tflite model.', required=False)
-    parser.add_argument(
-      '--label', help='File path of label file.', required=False)
-    args = parser.parse_args()
-    
-    args.model = '/home/pi/AI-self-driving-RC-car/code/test/data/detect_quant.tflite'
-    args.labels = '/home/pi/AI-self-driving-RC-car/code/test/data/labelmap.txt'
-        
-    # with open(args.label, 'r') as f:
-    #     pairs = (l.strip().split(maxsplit=1) for l in f.readlines())
-    #     labels = dict((int(k), v) for k, v in pairs)
+def main(_argv):
+    # config = ConfigProto()
+    # config.gpu_options.allow_growth = True
+    # session = InteractiveSession(config=config)
+    iou = 0.45
+    score = 0.25
 
-    # initialize open cv
-    IM_WIDTH = 640
-    IM_HEIGHT = 480
-    camera = cv2.VideoCapture(0)
-    ret = camera.set(3,IM_WIDTH)
-    ret = camera.set(4,IM_HEIGHT)
-    
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    bottomLeftCornerOfText = (10,IM_HEIGHT-10)
-    fontScale = 1
-    fontColor = (255,255,255)  # white
-    boxColor = (0,0,255)   # RED?
-    boxLineWidth = 1
-    lineType = 2
-    
-    annotate_text = ""
-    annotate_text_time = time.time()
-    time_to_show_prediction = 1.0 # ms
-    min_confidence = 0.20
-    
-    ##### initial classification interpreter
-    # interpreter = edgetpu.detection.interpreter.Detectioninterpreter(args.model)
-    labels = read_label_file(args.labels)
-    # 모델
-    interpreter = make_interpreter(args.model)
+
+    input_size = 46
+    video_path = '/home/pi/AI-self-driving-RC-car/code/test/data/tmp/object2.avi'
+
+
+    vid = cv2.VideoCapture(video_path)
+
+    interpreter = make_interpreter('/home/pi/AI-self-driving-RC-car/code/test/data/yolov3_int8.tflite')
+    #interpreter = tf.lite.Interpreter(model_path=FLAGS.weights)
     interpreter.allocate_tensors()
-    
-    # 모델 입력 및 출력 정보 가져오기
     input_details = interpreter.get_input_details()
     output_details = interpreter.get_output_details()
-    input_shape = input_details[0]['shape']
+    print(input_details)
+    print(output_details)
+
+    #     # by default VideoCapture returns float instead of int
+    # width = int(vid.get(cv2.CAP_PROP_FRAME_WIDTH))
+    # height = int(vid.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    # fps = int(vid.get(cv2.CAP_PROP_FPS))
+    # codec = cv2.VideoWriter_fourcc(*FLAGS.output_format)
+    # out = cv2.VideoWriter(FLAGS.output, codec, fps, (width, height))
+
+    frame_id = 0
+    while vid.isOpened():
+        start_time = time.time()
+        try:
+            return_value, frame = vid.read()
+
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            image = Image.fromarray(frame)
+
+            
+            frame_size = frame.shape[:2]
+            image_data = cv2.resize(frame, (input_size, input_size))
+            image_data = image_data / 255.
+            image_data = image_data[np.newaxis, ...].astype(np.float32)
+            prev_time = time.time()
 
 
-    
-    
-    # cv2설정
-    fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    out = cv2.VideoWriter('output.avi',fourcc, 20.0, (IM_WIDTH,IM_HEIGHT))
-    
-    elapsed_ms = 0
-    try:
-        while camera.isOpened():
-            try:
-                start_ms = time.time()
-                ret, frame = camera.read() # grab a frame from camera
-                if ret == False :
-                    print('can NOT read from camera')
-                    break
-                
-                frame_expanded = np.expand_dims(frame, axis=0)
-                
-                ret, frame = camera.read()
-                input = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                # resize
-                resized_img = cv2.resize(input, (416,416))
-                resized_img = resized_img/225.
-                image_data = resized_img[np.newaxis, ...].astype(np.float32)
-
-                ## start time
-                start_tf_ms = time.time()
+            interpreter.set_tensor(input_details[0]['index'], image_data)
+            interpreter.invoke()
+            pred = [interpreter.get_tensor(output_details[i]['index']) for i in range(len(output_details))]
+                # if FLAGS.model == 'yolov3' and FLAGS.tiny == True:
+                #     boxes, pred_conf = filter_boxes(pred[1], pred[0], score_threshold=0.25,
+                #                                     input_shape=tf.constant([input_size, input_size]))
+                # else:
+            boxes, pred_conf = filter_boxes(pred[0], pred[1], score_threshold=0.25,
+                                            input_shape=tf.constant([input_size, input_size]))
 
 
-                interpreter.set_tensor(input_details[0]['index'], image_data)
-                interpreter.invoke()
-                pred = [interpreter.get_tensor(output_details[i]['index']) for i in range(len(output_details))]
+            boxes, scores, classes, valid_detections = tf.image.combined_non_max_suppression(
+                boxes=tf.reshape(boxes, (tf.shape(boxes)[0], -1, 1, 4)),
+                scores=tf.reshape(
+                    pred_conf, (tf.shape(pred_conf)[0], -1, tf.shape(pred_conf)[-1])),
+                max_output_size_per_class=50,
+                max_total_size=50,
+                iou_threshold=iou,
+                score_threshold=score
+            )
+            pred_bbox = [boxes.numpy(), scores.numpy(), classes.numpy(), valid_detections.numpy()]
+            image = utils.draw_bbox(frame, pred_bbox)
+            curr_time = time.time()
+            exec_time = curr_time - prev_time
+            result = np.asarray(image)
+            info = "time: %.2f ms" %(1000*exec_time)
 
-                boxes, pred_conf = filter_boxes(pred[1], pred[0], score_threshold=0.25,
-                                                input_shape=tf.constant([416,416]))
+
+            result = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+            # FPS
+            elapse_time = time.time() - start_time
+            fps = 1/elapse_time
+            
+            cv2.putText(result, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.imshow('frame', result)
+        
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                vid.release()
+                cv2.destroyAllWindows()
+                break
+
+        except:
+            print("eorror")
+            break
 
 
-                #모델 출력 가져오기
-                output_data = interpreter.get_tensor(output_details[0]['index'])
 
-                end_tf_ms = time.time()
-                elapsed_tf_ms = end_tf_ms - start_ms
-                
-                if output_data :
-                    for obj in output_data:
-                        
-                        print("%s, %.0f%% %s %.2fms" % (labels[obj.label_id], obj.score *100, obj.bounding_box, elapsed_tf_ms * 1000))
-                        box = obj.bounding_box
-                        coord_top_left = (int(box[0][0]), int(box[0][1]))
-                        coord_bottom_right = (int(box[1][0]), int(box[1][1]))
-                        cv2.rectangle(frame, coord_top_left, coord_bottom_right, boxColor, boxLineWidth)
-                        annotate_text = "%s, %.0f%%" % (labels[obj.label_id], obj.score * 100)
-                        coord_top_left = (coord_top_left[0],coord_top_left[1]+15)
-                        cv2.putText(frame, annotate_text, coord_top_left, font, fontScale, boxColor, lineType )
-                    print('------')
-                else:
-                    print('No object detected')
 
-                # Print Frame rate info
-                elapsed_ms = time.time() - start_ms
-                annotate_text = "%.2f FPS, %.2fms total, %.2fms in tf " % (1.0 / elapsed_ms, elapsed_ms*1000, elapsed_tf_ms*1000)
-                
-                cv2.putText(frame, annotate_text, bottomLeftCornerOfText, font, fontScale, fontColor, lineType)
-                
-                out.write(frame)
-                    
-                cv2.imshow('Detected Objects', frame)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
-            except:
-                # catch it and don't exit the while loop
-                print('In except')
-                traceback.print_exc()
-
-    finally:
-        print('In Finally')
-        camera.release()
-        out.release()
-        cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    main()
+    try:
+        app.run(main)
+    except SystemExit:
+        pass
