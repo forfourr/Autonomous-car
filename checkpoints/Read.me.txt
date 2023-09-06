@@ -1,0 +1,4 @@
+yolov4를 tensorlite로 변환 한 파일
+coco데이터로 학습
+https://github.com/haroonshakeel/tensorflow-yolov4-tflite#convert-to-tflite
+참고
