@@ -110,7 +110,8 @@ class DeepPiCar(object):
                 # show_image('Detected Objects', image_objs)
 
                 # 주행
-                image_lane = self.lane_follower.follow_lane(image_lane)
+                image_lane, steering_angle = self.lane_follower.follow_lane(image_lane)
+                self.front_wheels.turn(steering_angle)  ##turn 을 하도록 steer값 빼와서 control 하도록
 
                 # FPS
                 elapse_time = time.time() - start_time

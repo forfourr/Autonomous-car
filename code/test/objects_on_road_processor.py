@@ -102,9 +102,9 @@ class ObjectsOnRoadProcessor(object):
         cv2_im = self.append_objs_to_img(cv2_im, objs)
 
         # 제어
-        self.control_car(objs)
+        steer = self.control_car(objs)
 
-        return cv2_im
+        return cv2_im, steer
 
     def append_objs_to_img(self,cv2_im, objs):
         height, width, channels = cv2_im.shape
@@ -125,7 +125,9 @@ class ObjectsOnRoadProcessor(object):
 
     def control_car(self, objects):
         logging.debug('Control car...')
-        car_state = {"speed": self.speed_limit, "speed_limit": self.speed_limit}
+        car_state = {"speed": self.speed_limit,
+                     "speed_limit": self.speed_limit,
+                     "steer":False}
 
         if len(objects) == 0:
             logging.debug('No objects detected, drive at speed limit of %s.' % self.speed_limit)
@@ -140,11 +142,10 @@ class ObjectsOnRoadProcessor(object):
             y1 = int(bbox.ymax)
             obj_height= y1 - y0
             ## obj Object(id=6, score=0.22265625, bbox=BBox(xmin=62, ymin=0, xmax=287, ymax=28)) <class 'pycoral.adapters.detect.Object'>
-
+            print(f"obj.id: {obj.id}")
             processor = self.traffic_objects[obj.id]
-            if processor.is_close_by(obj, self.height, obj_height):
+            if processor.is_close_by(obj, self.height, obj_height): #True/False
                 processor.set_car_state(car_state)
-                #print(f "label:{obj_label}, processor:{processor}, \n is_lclosed_by:{ processor.is_close_by(obj, self.height)}")
             else:
                 logging.debug("[%s] object detected, but it is too far, ignoring. " % obj_label)
             if obj_label == 'Stop':
@@ -155,12 +156,15 @@ class ObjectsOnRoadProcessor(object):
 
         self.resume_driving(car_state)
 
+
+
     def resume_driving(self, car_state):
         old_speed = self.speed
         self.speed_limit = car_state['speed_limit']     #제한속도
         self.speed = car_state['speed']     # 초기속도
 
         if self.speed == 0:
+            print("STOOPPPP!!!!!")
             self.set_speed(0)
         else:
             self.set_speed(self.speed_limit)
@@ -177,11 +181,7 @@ class ObjectsOnRoadProcessor(object):
             logging.debug("Actually setting car speed to %d" % speed)
             self.car.back_wheels.speed = speed
             
-    # front wheel 추가
-    def set_turning(self, turning):
-        self.turning = turning
-        if self.car is not None:
-            self.car.front_wheels.turning_offset = turning
+
 
 
 

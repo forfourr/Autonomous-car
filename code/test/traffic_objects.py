@@ -32,7 +32,10 @@ class GreenTrafficLight(TrafficObject):
 
 
 class Turn_right(TrafficObject):
-    pass
+    def set_car_steer(self,car_state):
+        car_state['steer'] = True
+        
+
 class Turn_left(TrafficObject):
     pass
 
