@@ -12,34 +12,35 @@ class TEST(object):
 
 
         processor = ObjectsOnRoadProcessor(self)
-        file = '/home/pi/AI-self-driving-RC-car/code/test/data/tmp/object1.avi'
-        cap = cv2.VideoCapture(file)
-        while cap.isOpened():
-            start_time = time.time()
+        file = '/home/pi/AI-self-driving-RC-car/code/test/data/tmp/obj_test.png'
+        # cap = cv2.VideoCapture(file)
+        # while cap.isOpened():
+        #     start_time = time.time()
             
-            _, frame = cap.read()
+        #     _, frame = cap.read()
 
-            combo_image = processor.process_objects_on_road(frame)
+        #     combo_image = processor.process_objects_on_road(frame)
 
-            # FPS
-            elapse_time = time.time() - start_time
-            fps = 1/elapse_time
+        #     # FPS
+        #     elapse_time = time.time() - start_time
+        #     fps = 1/elapse_time
             
-            cv2.putText(combo_image, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-            cv2.imshow('frame', combo_image)
+        #     cv2.putText(combo_image, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+        #     cv2.imshow('frame', combo_image)
 
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                cap.release()
-                # video_overlay.release()
-                cv2.destroyAllWindows()
-                break
+        #     if cv2.waitKey(1) & 0xFF == ord('q'):
+        #         cap.release()
+        #         # video_overlay.release()
+        #         cv2.destroyAllWindows()
+        #         break
   
         ################
-        # frame = cv2.imread(file)
-        # combo_image = processor.process_objects_on_road(frame)
-        # cv2.imshow('Detected Objects', combo_image)
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
+        frame = cv2.imread(file)
+
+        combo_image = processor.process_objects_on_road(frame)
+        cv2.imshow('Detected Objects', combo_image)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
 
 
 if __name__ == '__main__':
