@@ -56,6 +56,7 @@ class DeepPiCar(object):
         # 주행 알고리즘 / 객체인식 수행
         self.lane_follower = HandCodedLaneFollower(self)
         self.traffic_sign_processor = ObjectsOnRoadProcessor(self)
+
         # lane_follower = DeepLearningLaneFollower()
 
         # 비디오 저장

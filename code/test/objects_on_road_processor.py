@@ -163,7 +163,12 @@ class ObjectsOnRoadProcessor(object):
         if self.car is not None:
             logging.debug("Actually setting car speed to %d" % speed)
             self.car.back_wheels.speed = speed
-
+            
+    # front wheel 추가
+    def set_turning(self, turning):
+        self.turning = turning
+        if self.car is not None:
+            self.car.front_wheels.turning_offset = turning
 
 
 
@@ -248,3 +253,5 @@ if __name__ == '__main__':
 
     # test stop sign, which carries state
     #test_stop_sign()
+    obj = ObjectsOnRoadProcessor()
+    obj.set_speed(40)
