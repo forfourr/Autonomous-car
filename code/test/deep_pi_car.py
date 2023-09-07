@@ -29,8 +29,8 @@ class DeepPiCar(object):
 
         # set up camera
         # self.camera = cv2.VideoCapture(-1)
-        # self.camera = cv2.VideoCapture('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/object2.avi')
-        self.camera = cv2.VideoCapture('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/test.avi')
+        self.camera = cv2.VideoCapture('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/object2.avi')
+        # self.camera = cv2.VideoCapture('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/test.avi')
         self.camera.set(3, self.__SCREEN_WIDTH)
         self.camera.set(4, self.__SCREEN_HEIGHT)
 
@@ -104,29 +104,29 @@ class DeepPiCar(object):
                 _, image_lane = self.camera.read()
                 image_objs = image_lane.copy()
                 
-                image = self.traffic_sign_processor.process_objects_on_road(image_lane)
+                # image_objs  = self.traffic_sign_processor.process_objects_on_road(image_objs)
                 # cv2.imshow('Detected Objects', image_objs)
                 # show_image('Detected Objects', image_objs)
 
                 # 주행
-                # image = self.lane_follower.follow_lane(image_objs)
+                image_lane = self.lane_follower.follow_lane(image_lane)
 
                 # FPS
                 elapse_time = time.time() - start_time
                 fps = 1/elapse_time
-                
-                cv2.putText(image, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+
+                cv2.putText(image_lane, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                 #show_image('Lane Lines', image_lane)
-                cv2.imshow('Lane Lines', image)
+                cv2.imshow('Lane Lines', image_lane)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     self.cleanup()
                     break
 
-                # if _SAVE_VIDEO:
-                #     self.video_orig.write(image_lane)
-                #     self.video_lane.write(image_lane)
-                #     self.video_objs.write(image_objs)
+                if _SAVE_VIDEO:
+                    self.video_orig.write(image_lane)
+                    self.video_lane.write(image_lane)
+                    self.video_objs.write(image_objs)
             
             except Exception as e:
                 print('Exception:', e)

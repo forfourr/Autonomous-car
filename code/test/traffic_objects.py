@@ -13,6 +13,9 @@ class TrafficObject(object):
         obj_height = obj.bounding_box[1][1]-obj.bounding_box[0][1]
         return obj_height / frame_height > min_height_pct
 
+class keep(TrafficObject):
+    pass
+
 
 class RedTrafficLight(TrafficObject):
 
@@ -26,6 +29,11 @@ class GreenTrafficLight(TrafficObject):
     def set_car_state(self, car_state):
         logging.debug('green light: make no changes')
 
+
+class Turn_right(TrafficObject):
+    pass
+class Turn_left(TrafficObject):
+    pass
 
 class Person(TrafficObject):
 
