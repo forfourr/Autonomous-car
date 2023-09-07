@@ -41,21 +41,21 @@ class ObjectsOnRoadProcessor(object):
         self.interpreter, self.inference_size = self.make_interpreter(model)
         self.labels = self.read_label_file(label_path)
         
-        self.traffic_objects = {0: GreenTrafficLight(),
-                                1: Person(),
-                                2: RedTrafficLight(),
-                                3: SpeedLimit(25),
-                                4: SpeedLimit(40),
-                                5: StopSign()}
+        # self.traffic_objects = {0: GreenTrafficLight(),
+        #                         1: Person(),
+        #                         2: RedTrafficLight(),
+        #                         3: SpeedLimit(25),
+        #                         4: SpeedLimit(40),
+        #                         5: StopSign()}
         
-        # self.traffic_objects = {0: keep(),          # Traffic Light
-        #                         1: SpeedLimit(15),  # limit sign
-        #                         2: StopSign(),      # stop sign
-        #                         3: StopSign(),      # animal
-        #                         4: StopSign(),      # car
-        #                         5: StopSign(),      # human
-        #                         6: Turn_right(),    # right_sign
-        #                         7: Turn_left()}     # left_sign
+        self.traffic_objects = {0: keep(),          # Traffic Light
+                                1: SpeedLimit(15),  # limit sign
+                                2: StopSign(),      # stop sign
+                                3: StopSign(),      # animal
+                                4: StopSign(),      # car
+                                5: StopSign(),      # human
+                                6: Turn_right(),    # right_sign
+                                7: Turn_left()}     # left_sign
         '''
         Traffic Light
         limit sign
@@ -99,7 +99,7 @@ class ObjectsOnRoadProcessor(object):
         cv2_im = self.append_objs_to_img(cv2_im, objs)
 
         # 제어
-        # self.control_car(objs)
+        self.control_car(objs)
 
         return cv2_im
 
@@ -132,6 +132,7 @@ class ObjectsOnRoadProcessor(object):
             processor = self.traffic_objects[obj.label_id]
             if processor.is_close_by(obj, self.height):
                 processor.set_car_state(car_state)
+                print(f"label:{obj_label}, processor:{processor}, \n is_lclosed_by:{ processor.is_close_by(obj, self.height)}")
             else:
                 logging.debug("[%s] object detected, but it is too far, ignoring. " % obj_label)
             if obj_label == 'Stop':
@@ -144,8 +145,8 @@ class ObjectsOnRoadProcessor(object):
 
     def resume_driving(self, car_state):
         old_speed = self.speed
-        self.speed_limit = car_state['speed_limit']
-        self.speed = car_state['speed']
+        self.speed_limit = car_state['speed_limit']     #제한속도
+        self.speed = car_state['speed']     # 초기속도
 
         if self.speed == 0:
             self.set_speed(0)

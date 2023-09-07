@@ -59,33 +59,33 @@ class StopSign(TrafficObject):
     """
 
     def __init__(self, wait_time_in_sec=3, min_no_stop_sign=20):
-        self.in_wait_mode = False
-        self.has_stopped = False
-        self.wait_time_in_sec = wait_time_in_sec
-        self.min_no_stop_sign = min_no_stop_sign
-        self.no_stop_count = min_no_stop_sign
+        self.in_wait_mode = False   # 정지 기다리는지 여부
+        self.has_stopped = False    # 이미 정지했는지 여부
+        self.wait_time_in_sec = wait_time_in_sec    # 정지 시간
+        self.min_no_stop_sign = min_no_stop_sign    # 정지 아닐 때 정지 유지 최소 프레임
+        self.no_stop_count = min_no_stop_sign       # 정지 아닐 때 프레임 카운트
         self.timer = None
 
     def set_car_state(self, car_state):
         self.no_stop_count = self.min_no_stop_sign
 
-        if self.in_wait_mode:
+        if self.in_wait_mode:   # 이미 정지한 경우
             logging.debug('stop sign: 2) still waiting')
             # wait for 2 second before proceeding
             car_state['speed'] = 0
             return
 
-        if not self.has_stopped:
+        if not self.has_stopped:    # 정지 아닌 경우
             logging.debug('stop sign: 1) just detected')
 
             car_state['speed'] = 0
-            self.in_wait_mode = True
+            self.in_wait_mode = True    # 정지상태로 전환
             self.has_stopped = True
             self.timer = Timer(self.wait_time_in_sec, self.wait_done)
             self.timer.start()
             return
 
-    def wait_done(self):
+    def wait_done(self):        # 정지 신호 끝나면 호출
         logging.debug('stop sign: 3) finished waiting for %d seconds' % self.wait_time_in_sec)
         self.in_wait_mode = False
 
