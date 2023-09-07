@@ -21,10 +21,19 @@ class ObjectsOnRoadProcessor(object):
     and 2) controls the car navigation (speed/steering) accordingly
     """
 
-    def __init__(self, top_k=10, threshold=0.1, video_path=None):
+    def __init__(self,
+                 car=None,
+                 speed_limit=40,
+                 top_k=10, threshold=0.1,
+                 video_path=None):
         self.top_k = top_k
         self.threshold = threshold
         self.video_path = video_path
+
+        # initialize car
+        self.car = car
+        self.speed_limit = speed_limit
+        self.speed = speed_limit
         
         model='/home/pi/AI-self-driving-RC-car/code/test/data/mobilenet_v2_haram.tflite'
         label_path='/home/pi/AI-self-driving-RC-car/code/test/data/labelmap_haram.txt'
