@@ -1,12 +1,24 @@
 import cv2
 import time
-
+import sys
+from Servo import Servo
+from front_wheel_curve_test import Front_wheels
 # 카메라 열기
-cap = cv2.VideoCapture(0)
+cap = cv2.VideoCapture(-1)
 
 # 비디오 코덱 설정
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('test_curve.avi', fourcc, 20.0, (320, 240))
+out = cv2.VideoWriter('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/test_record3.avi', fourcc, 20.0, (640, 480))
+# stereo 설정
+a = Servo(1)
+a.setup()
+a.write(90)
+
+# 주행
+
+front_wheels = Front_wheels(channel=0)
+
+front_wheels.to90()
 
 
 

@@ -16,7 +16,7 @@ class Front_wheels(object):
             'Left':0,
             'Right':250,
             'Straight':125,
-            'little_right':150,
+            'to90':90,
             'little_left':30
         }
 
@@ -32,8 +32,8 @@ class Front_wheels(object):
     def turn_right(self):
         self.wheel.write(self.angle_list['Right'])
     
-    def little_right(self):
-        self.wheel.write(self.angle_list['little_right'])
+    def to90(self):
+        self.wheel.write(self.angle_list['to90'])
 
     def turn(self, angle):
         if angle < self.angle_list['Left']:

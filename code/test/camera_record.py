@@ -22,8 +22,7 @@ a.write(90)
 back_wheels = Back_Wheels()
 front_wheels = Front_wheels(channel=0)
 
-front_wheels.turn_straight()
-back_wheels.speed = 40
+front_wheels.turning_offset = 90
 
 while cap.isOpened():
     start_time = time.time()
@@ -45,8 +44,7 @@ while cap.isOpened():
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
     except:
-        print('fail')
-        back_wheels.speed =0  
+        print('fail') 
         break
 
     

@@ -34,6 +34,8 @@ class ObjectsOnRoadProcessor(object):
         self.car = car
         self.speed_limit = speed_limit
         self.speed = speed_limit
+        self.height = 240
+        self.width = 320
         
         model='/home/pi/AI-self-driving-RC-car/code/test/data/mobilenet_v2_haram.tflite'
         label_path='/home/pi/AI-self-driving-RC-car/code/test/data/labelmap_haram.txt'
@@ -105,11 +107,12 @@ class ObjectsOnRoadProcessor(object):
 
     def append_objs_to_img(self,cv2_im, objs):
         height, width, channels = cv2_im.shape
-        scale_x, scale_y = width / self.inference_size[0], height / self.inference_size[1]
+        self.scale_x, self.scale_y = width / self.inference_size[0], height / self.inference_size[1]
         for obj in objs:
-            bbox = obj.bbox.scale(scale_x, scale_y)
+            bbox = obj.bbox.scale(self.scale_x, self.scale_y)
             x0, y0 = int(bbox.xmin), int(bbox.ymin)
             x1, y1 = int(bbox.xmax), int(bbox.ymax)
+            
     
             percent = int(100 * obj.score)
             label = '{}% {}'.format(percent, self.labels.get(obj.id, obj.id))
@@ -126,13 +129,21 @@ class ObjectsOnRoadProcessor(object):
         if len(objects) == 0:
             logging.debug('No objects detected, drive at speed limit of %s.' % self.speed_limit)
 
+        
         contain_stop_sign = False
         for obj in objects:
-            obj_label = self.labels[obj.label_id]
-            processor = self.traffic_objects[obj.label_id]
-            if processor.is_close_by(obj, self.height):
+            obj_label = self.labels[obj.id]
+
+            bbox = obj.bbox.scale(self.scale_x, self.scale_y)
+            y0 = int(bbox.ymin)
+            y1 = int(bbox.ymax)
+            obj_height= y1 - y0
+            ## obj Object(id=6, score=0.22265625, bbox=BBox(xmin=62, ymin=0, xmax=287, ymax=28)) <class 'pycoral.adapters.detect.Object'>
+
+            processor = self.traffic_objects[obj.id]
+            if processor.is_close_by(obj, self.height, obj_height):
                 processor.set_car_state(car_state)
-                print(f"label:{obj_label}, processor:{processor}, \n is_lclosed_by:{ processor.is_close_by(obj, self.height)}")
+                #print(f"label:{obj_label}, processor:{processor}, \n is_lclosed_by:{ processor.is_close_by(obj, self.height)}")
             else:
                 logging.debug("[%s] object detected, but it is too far, ignoring. " % obj_label)
             if obj_label == 'Stop':

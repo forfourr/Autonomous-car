@@ -5,7 +5,7 @@ import datetime
 import time
 import PCA9685
 import threading
-from hand_coded_lane_follower_230825 import HandCodedLaneFollower
+from hand_test import HandCodedLaneFollower
 from objects_on_road_processor import ObjectsOnRoadProcessor
 
 
@@ -105,8 +105,8 @@ class DeepPiCar(object):
                 _, image_lane = self.camera.read()
                 image_objs = image_lane.copy()
                 
-                # image_objs  = self.traffic_sign_processor.process_objects_on_road(image_objs)
-                # cv2.imshow('Detected Objects', image_objs)
+                image_objs  = self.traffic_sign_processor.process_objects_on_road(image_objs)
+                #cv2.imshow('Detected Objects', image_objs)
                 # show_image('Detected Objects', image_objs)
 
                 # 주행
@@ -118,6 +118,7 @@ class DeepPiCar(object):
 
                 cv2.putText(image_lane, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
                 #show_image('Lane Lines', image_lane)
+                # cv2.imshow('Detected Objects', image_objs)
                 cv2.imshow('Lane Lines', image_lane)
 
                 if cv2.waitKey(1) & 0xFF == ord('q'):
