@@ -19,9 +19,9 @@ class HandCodedLaneFollower(object):
     def follow_lane(self, frame):
 
         lane_lines, lane_lines_image = detect_lane(frame)
-        final_frame = self.steer(lane_lines_image, lane_lines)
+        final_frame, steer_angle = self.steer(lane_lines_image, lane_lines)
 
-        return final_frame
+        return final_frame, steer_angle
 
     def steer(self, lane_lines_image, lane_lines):
         logging.debug('steering...')
@@ -32,13 +32,15 @@ class HandCodedLaneFollower(object):
         new_steering_angle = compute_steering_angle(lane_lines_image, lane_lines)
         self.curr_steering_angle = stabilize_steering_angle(self.curr_steering_angle, new_steering_angle, len(lane_lines))
 
-        if self.car is not None:
-            self.car.front_wheels.turn(self.curr_steering_angle)
+        # 위부분 deep_pi_car로 뺌
+        # if self.car is not None:
+        #     self.car.front_wheels.turn(self.curr_steering_angle)
+
+        # 실질적으로 필요없는거지?    
         curr_heading_image = display_heading_line(lane_lines_image, self.curr_steering_angle)
         # show_image("heading", curr_heading_image)
 
-        return curr_heading_image
-
+        return curr_heading_image, self.curr_steering_angle
 
 ############################
 # Frame processing steps
