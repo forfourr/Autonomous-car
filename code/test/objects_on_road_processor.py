@@ -89,6 +89,7 @@ class ObjectsOnRoadProcessor(object):
 
         cv2_im_rgb = cv2.cvtColor(cv2_im, cv2.COLOR_BGR2RGB)
         cv2_im_rgb = cv2.resize(cv2_im_rgb, self.inference_size)
+        
         run_inference(self.interpreter, cv2_im_rgb.tobytes())
         #self.run_inference(cv2_im_rgb.tobytes())
         objs = get_objects(self.interpreter, self.threshold)[:self.top_k]
@@ -143,7 +144,7 @@ class ObjectsOnRoadProcessor(object):
             processor = self.traffic_objects[obj.id]
             if processor.is_close_by(obj, self.height, obj_height):
                 processor.set_car_state(car_state)
-                #print(f"label:{obj_label}, processor:{processor}, \n is_lclosed_by:{ processor.is_close_by(obj, self.height)}")
+                #print(f "label:{obj_label}, processor:{processor}, \n is_lclosed_by:{ processor.is_close_by(obj, self.height)}")
             else:
                 logging.debug("[%s] object detected, but it is too far, ignoring. " % obj_label)
             if obj_label == 'Stop':
