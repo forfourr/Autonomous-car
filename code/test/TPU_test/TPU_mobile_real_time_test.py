@@ -38,6 +38,11 @@ def main():
             cv2_im_rgb = cv2.resize(cv2_im_rgb, inference_size)
             run_inference(interpreter, cv2_im_rgb.tobytes())
             objs = get_objects(interpreter, threshold)[:top_k]
+            
+            print("Detected Objects:")
+            for obj in objs:
+                print(f"ID: {obj.id}, Score: {obj.score}, Bounding Box: {obj.bbox}")
+
             cv2_im = append_objs_to_img(cv2_im, inference_size, objs, labels)
 
             # FPS
