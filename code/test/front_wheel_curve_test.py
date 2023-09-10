@@ -14,8 +14,8 @@ class Front_wheels(object):
 
         self.angle_list = {
             'Left':0,
-            'Right':250,
-            'Straight':125,
+            'Right':110,
+            'Straight':90,
             'to90':90,
             'little_left':30
         }
@@ -73,6 +73,3 @@ if __name__ == '__main__':
     Front_wheels.turn_straight()
     time.sleep(2)
 
-    print('test')
-    Front_wheels.little_right()
-    time.sleep(2)

@@ -5,12 +5,12 @@ import datetime
 import time
 import PCA9685
 import threading
-from hand_test import HandCodedLaneFollower
+from hand_coded_lane_follower_230825 import HandCodedLaneFollower
 from objects_on_road_processor import ObjectsOnRoadProcessor
 
 
 _SHOW_IMAGE = True
-_SAVE_VIDEO = False
+_SAVE_VIDEO = True
 
 class DeepPiCar(object):
 
@@ -28,8 +28,8 @@ class DeepPiCar(object):
         pwm.frequency = 60
 
         # set up camera
-        # self.camera = cv2.VideoCapture(-1)
-        self.camera = cv2.VideoCapture('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/object2.avi')
+        self.camera = cv2.VideoCapture(-1)
+        # self.camera = cv2.VideoCapture('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/object2.avi')
         # self.camera = cv2.VideoCapture('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/test.avi')
         self.camera.set(3, self.__SCREEN_WIDTH)
         self.camera.set(4, self.__SCREEN_HEIGHT)
@@ -62,9 +62,9 @@ class DeepPiCar(object):
         # 비디오 저장
         self.fourcc = cv2.VideoWriter_fourcc(*'XVID')
         datestr = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
-        self.video_orig = self.create_video_recorder('code/test/data/tmp/car_video%s.avi' % datestr)
-        self.video_lane = self.create_video_recorder('code/test/data/tmp/car_video_lane%s.avi' % datestr)
-        self.video_objs = self.create_video_recorder('code/test/data/tmp/car_video_objs%s.avi' % datestr)
+        self.video_orig = self.create_video_recorder('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/car_video%s.avi' % datestr)
+        self.video_lane = self.create_video_recorder('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/car_video_lane%s.avi' % datestr)
+        self.video_objs = self.create_video_recorder('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/car_video_objs%s.avi' % datestr)
 
         logging.info('Created a DeepPiCar')
 
@@ -105,7 +105,7 @@ class DeepPiCar(object):
                 _, image_lane = self.camera.read()
                 image_objs = image_lane.copy()
                 
-                image_objs  = self.traffic_sign_processor.process_objects_on_road(image_objs)
+                #image_objs  = self.traffic_sign_processor.process_objects_on_road(image_objs)
                 #cv2.imshow('Detected Objects', image_objs)
                 # show_image('Detected Objects', image_objs)
 
