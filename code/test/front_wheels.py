@@ -164,9 +164,7 @@ def test(chn=0):
 			print("turn_right")
 			front_wheels.turn_right()
 			time.sleep(1)
-			print("turn_straight")
-			front_wheels.turn_straight()
-			time.sleep(1)
+
 	except KeyboardInterrupt:
 		front_wheels.turn_straight()
 

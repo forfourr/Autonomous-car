@@ -1,5 +1,5 @@
 import sys
-import front_wheel_curve_test
+import front_wheels
 import back_wheels
 import Servo
 import PCF8591

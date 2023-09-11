@@ -5,12 +5,12 @@ import datetime
 import time
 import PCA9685
 import threading
-from hand_coded_lane_follower_230905 import HandCodedLaneFollower
+from hand_coded_lane_follower_230824 import HandCodedLaneFollower
 from objects_on_road_processor import ObjectsOnRoadProcessor
 
 
 _SHOW_IMAGE = True
-_SAVE_VIDEO = True
+_SAVE_VIDEO = False
 
 class DeepPiCar(object):
 
@@ -48,8 +48,8 @@ class DeepPiCar(object):
         self.back_wheels.speed = 0  # Speed Range is 0 (stop) - 100 (fastest)
 
         logging.debug('Set up front wheels')
-        self.front_wheels = picar.front_wheel_curve_test.Front_wheels()
-        self.front_wheels.turning_offset = 125  # calibrate servo to center
+        self.front_wheels = picar.front_wheels.Front_Wheels()
+        self.front_wheels.turning_offset = 90  # calibrate servo to center
         self.front_wheels.turn(90)  # Steering Range is 45 (left) - 90 (center) - 135 (right)
 
 

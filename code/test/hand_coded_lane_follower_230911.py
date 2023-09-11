@@ -1,3 +1,13 @@
+"""
+#23.09.11 modification
+1. original : hand_coded_lane_follower_230905.py
+
+변경사항 
+1. showimage함수 부활 : hand_coded_lane_follower.py
+
+"""
+
+
 import cv2
 import numpy as np
 import logging
@@ -18,9 +28,11 @@ class HandCodedLaneFollower(object):
         self.curr_steering_angle = 90
 
     def follow_lane(self, frame):
-
-        lane_lines, lane_lines_image = detect_lane(frame)
-        final_frame = self.steer(lane_lines_image, lane_lines)
+        # Main entry point of the lane follower
+        show_image("orig", frame)
+        
+        lane_lines, frame = detect_lane(frame)
+        final_frame = self.steer(frame, lane_lines)
 
         return final_frame
 
@@ -48,15 +60,15 @@ def detect_lane(frame):
     logging.debug('detecting lane lines...')
 
     cropped_edges = detect_edges(frame)
-   
+    show_image('edges cropped', cropped_edges)
 
     line_segments = detect_line_segments(cropped_edges)
-    # line_segment_image = display_lines(frame, line_segments)
-    
+    line_segment_image = display_lines(frame, line_segments)
+    show_image("line segments", line_segment_image)
 
     lane_lines = average_slope_intercept(cropped_edges, line_segments)
     lane_lines_image = display_lines(frame, lane_lines)
-    # print("display", lane_lines_image)
+    show_image("lane lines", lane_lines_image)
 
 
     return lane_lines, lane_lines_image
@@ -68,14 +80,14 @@ def detect_edges(frame):
     
 
     # cropped_image = gray[240:400,0:640]
-    cropped_image = gray[336:480,0:640]
+    cropped_image = gray[240:480,0:640]
     
 
 
     
     # masked_image = cv2.bitwise_and(frame, cropped_image)
     
-    img_blurred = cv2.GaussianBlur(cropped_image, ksize = (21,21), sigmaX= 0)
+    img_blurred = cv2.GaussianBlur(cropped_image, ksize = (19,19), sigmaX= 0)
     
     cropped_edges = cv2.adaptiveThreshold(
     img_blurred,
@@ -96,6 +108,12 @@ def detect_line_segments(cropped_edges):
     min_threshold = 10  # minimal of votes
     line_segments = cv2.HoughLinesP(cropped_edges, rho, angle, min_threshold, np.array([]), minLineLength=8,
                                     maxLineGap=3)
+    
+    if line_segments is not None:
+        for line_segment in line_segments:
+            logging.debug('detected line_segment:')
+            logging.debug("%s of length %s" % (line_segment, length_of_line_segment(line_segment[0])))
+
 
     return line_segments
 
@@ -211,7 +229,7 @@ def display_lines(frame, lines, line_color=(0, 255, 0), line_width=10):
         for line in lines:
             for x1, y1, x2, y2 in line:
                 if abs(y1-y2) > 10:
-                    cv2.line(line_image, (x1, y1+336), (x2, y2+336), line_color, line_width)
+                    cv2.line(line_image, (x1, y1+240), (x2, y2+240), line_color, line_width)
     line_image = cv2.addWeighted(frame, 0.8, line_image, 1, 1)
     
     return line_image
@@ -325,7 +343,7 @@ def test_video(video_file):
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
-    test_video("/home/pi/AI-self-driving-RC-car/code/test/data/tmp/car_video_lane230911_224226.avi")
+    test_video("./RC_car_new_track.mp4")
     # test_photo("./frame_image/RC_car_230822/RC_car_230822_305_086.png")
     #test_photo(sys.argv[1])
     #test_video(sys.argv[1])
