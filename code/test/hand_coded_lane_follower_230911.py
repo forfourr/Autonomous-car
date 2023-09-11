@@ -66,7 +66,7 @@ def detect_lane(frame):
     line_segment_image = display_lines(frame, line_segments)
     show_image("line segments", line_segment_image)
 
-    lane_lines = average_slope_intercept(cropped_edges, line_segments)
+    lane_lines = average_slope_intercept(frame, line_segments)
     lane_lines_image = display_lines(frame, lane_lines)
     show_image("lane lines", lane_lines_image)
 
