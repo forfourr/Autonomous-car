@@ -5,7 +5,7 @@ import datetime
 import time
 import PCA9685
 import threading
-from hand_coded_lane_follower_230825 import HandCodedLaneFollower
+from hand_coded_lane_follower_230905 import HandCodedLaneFollower
 from objects_on_road_processor import ObjectsOnRoadProcessor
 
 
@@ -29,6 +29,7 @@ class DeepPiCar(object):
 
         # set up camera
         self.camera = cv2.VideoCapture(-1)
+        
         # self.camera = cv2.VideoCapture('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/object2.avi')
         # self.camera = cv2.VideoCapture('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/test.avi')
         self.camera.set(3, self.__SCREEN_WIDTH)
@@ -105,9 +106,10 @@ class DeepPiCar(object):
                 _, image_lane = self.camera.read()
                 image_objs = image_lane.copy()
                 
-                #image_objs  = self.traffic_sign_processor.process_objects_on_road(image_objs)
-                #cv2.imshow('Detected Objects', image_objs)
-                # show_image('Detected Objects', image_objs)
+                # 객체 인식
+                image_objs  = self.traffic_sign_processor.process_objects_on_road(image_objs)
+                cv2.imshow('Detected Objects', image_objs)
+                #show_image('Detected Objects', image_objs)
 
                 # 주행
                 image_lane = self.lane_follower.follow_lane(image_lane)

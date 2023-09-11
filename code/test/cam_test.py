@@ -8,7 +8,7 @@ cap = cv2.VideoCapture(-1)
 
 # 비디오 코덱 설정
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/new_track2.avi', fourcc, 20.0, (640, 480))
+out = cv2.VideoWriter('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/new_track.avi', fourcc, 20.0, (640, 480))
 # stereo 설정
 a = Servo(1)
 a.setup()

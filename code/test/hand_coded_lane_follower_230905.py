@@ -2,9 +2,10 @@ import cv2
 import numpy as np
 import logging
 import math
-import datetime
 import sys
 import os
+import datetime
+
 
 _SHOW_IMAGE = False
 
@@ -66,7 +67,10 @@ def detect_edges(frame):
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     
 
+    # cropped_image = gray[240:400,0:640]
     cropped_image = gray[336:480,0:640]
+    
+
 
     
     # masked_image = cv2.bitwise_and(frame, cropped_image)
@@ -272,45 +276,56 @@ def test_photo(file):
 
 
 def test_video(video_file):
+    now = datetime.datetime.now()
     lane_follower = HandCodedLaneFollower()
     cap = cv2.VideoCapture(video_file)
     os.makedirs("frame_image", exist_ok=True)
     folder_name = video_file.split(".")[1].split("/")[1]
-    os.makedirs(f"./frame_image/{folder_name}", exist_ok=True)
-    
-    # # skip first second of video.
-    # for i in range(3):
-    #     _, frame = cap.read()
+    os.makedirs(f"./frame_image/({now.strftime('%Y-%m-%d')}){folder_name}", exist_ok=True)
+    os.makedirs(f"./video_record/({now.strftime('%Y-%m-%d')}){folder_name}", exist_ok=True)
+    fps = cap.get(cv2.CAP_PROP_FPS) # 카메라에 따라 값이 정상적, 비정상적
 
-    video_type = cv2.VideoWriter_fourcc(*'mp4v')
-    video_overlay = cv2.VideoWriter("%s_overlay.mp4" % (video_file), video_type, 20.0, (320, 240))
-    try:
-        i = 0
-        while cap.isOpened():
-            _, frame = cap.read()
-            
-            print('frame %s' % i )
-            combo_image= lane_follower.follow_lane(frame)
-            
-            cv2.imwrite("./frame_image/%s/%s_%03d_%03d.png" % (folder_name,folder_name, i, lane_follower.curr_steering_angle), frame)
-            
-            cv2.imwrite("./frame_image/%s/%s_overlay_%03d.png" % (folder_name,folder_name, i), combo_image)
-            video_overlay.write(combo_image)
-            cv2.imshow("Road with Lane line", combo_image)
 
-            i += 1
-            if cv2.waitKey(10) & 0xFF == ord('q'):
+
+    i=0
+    if cap.isOpened():
+
+        fps = cap.get(cv2.CAP_PROP_FPS) # 카메라에 따라 값이 정상적, 비정상적
+        width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+        height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        size = (int(width), int(height))   
+        video_type = cv2.VideoWriter_fourcc(*'mp4v')
+        video_overlay = cv2.VideoWriter(f"./video_record/({now.strftime('%Y-%m-%d')}){folder_name}/{folder_name}_overlay.mp4",video_type ,fps, size) # size 부분에 임의 숫자를 넣을 경우, 맞지 않아 동영상 frame이 저장되지 않는다!
+
+        while True:
+            ret, frame = cap.read()
+            if ret:
+
+                print('frame %s' % i )
+                combo_image= lane_follower.follow_lane(frame)
+                
+                cv2.imshow("Road with Lane line", combo_image)
+                cv2.imwrite(f"./frame_image/({now.strftime('%Y-%m-%d')}){folder_name}/{folder_name}_{i}_{lane_follower.curr_steering_angle}.png",frame)
+
+                cv2.imwrite(f"./frame_image/({now.strftime('%Y-%m-%d')}){folder_name}/{folder_name}_overlay_{i}.png", combo_image)
+                video_overlay.write(combo_image)
+
+
+                i += 1
+                if cv2.waitKey(10) & 0xFF == ord('q'):
+                    break
+            else:
                 break
-    finally:
-        cap.release()
-        video_overlay.release()
-        cv2.destroyAllWindows()
 
+
+    cap.release()
+    video_overlay.release()
+    cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
-    test_video("./RC_car_230822.mp4")
+    test_video("./RC_car_230908.mp4")
     # test_photo("./frame_image/RC_car_230822/RC_car_230822_305_086.png")
     #test_photo(sys.argv[1])
     #test_video(sys.argv[1])

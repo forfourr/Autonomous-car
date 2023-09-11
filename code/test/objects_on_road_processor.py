@@ -102,7 +102,7 @@ class ObjectsOnRoadProcessor(object):
         cv2_im = self.append_objs_to_img(cv2_im, objs)
 
         # 제어
-        self.control_car(objs)
+        #self.control_car(objs)
 
         return cv2_im
 
