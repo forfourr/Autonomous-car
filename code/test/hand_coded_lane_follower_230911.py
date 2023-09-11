@@ -30,27 +30,28 @@ class HandCodedLaneFollower(object):
     def follow_lane(self, frame):
         # Main entry point of the lane follower
         show_image("orig", frame)
-        
+
         lane_lines, frame = detect_lane(frame)
         final_frame = self.steer(frame, lane_lines)
 
         return final_frame
 
-    def steer(self, lane_lines_image, lane_lines):
+    def steer(self, frame, lane_lines):
         logging.debug('steering...')
         if len(lane_lines) == 0:
             logging.error('No lane lines detected, nothing to do.')
-            return lane_lines_image
+            return frame
 
-        new_steering_angle = compute_steering_angle(lane_lines_image, lane_lines)
+        new_steering_angle = compute_steering_angle(frame, lane_lines)
         self.curr_steering_angle = stabilize_steering_angle(self.curr_steering_angle, new_steering_angle, len(lane_lines))
 
         if self.car is not None:
             self.car.front_wheels.turn(self.curr_steering_angle)
-        curr_heading_image = display_heading_line(lane_lines_image, self.curr_steering_angle)
+        curr_heading_image = display_heading_line(frame, self.curr_steering_angle)
         show_image("heading", curr_heading_image)
 
         return curr_heading_image
+
 
 
 ############################
@@ -60,7 +61,7 @@ def detect_lane(frame):
     logging.debug('detecting lane lines...')
 
     cropped_edges = detect_edges(frame)
-    show_image('edges cropped', cropped_edges)
+    show_image('edges', cropped_edges)
 
     line_segments = detect_line_segments(cropped_edges)
     line_segment_image = display_lines(frame, line_segments)
@@ -69,7 +70,6 @@ def detect_lane(frame):
     lane_lines = average_slope_intercept(frame, line_segments)
     lane_lines_image = display_lines(frame, lane_lines)
     show_image("lane lines", lane_lines_image)
-
 
     return lane_lines, lane_lines_image
 
@@ -118,7 +118,7 @@ def detect_line_segments(cropped_edges):
     return line_segments
 
 
-def average_slope_intercept(cropped_edges, line_segments):
+def average_slope_intercept(frame, line_segments):
     """
     This function combines line segments into one or two lane lines
     If all line slopes are < 0: then we only have detected left lane
@@ -129,7 +129,7 @@ def average_slope_intercept(cropped_edges, line_segments):
         logging.info('No line_segment segments detected')
         return lane_lines
 
-    height, width= cropped_edges.shape
+    height, width, _ = frame.shape
     left_fit = []
     right_fit = []
 
@@ -142,29 +142,27 @@ def average_slope_intercept(cropped_edges, line_segments):
             if x1 == x2:
                 logging.info('skipping vertical line segment (slope=inf): %s' % line_segment)
                 continue
-            if abs(y1-y2) > 30:
-                fit = np.polyfit((x1, x2), (y1, y2), 1)
-                slope = fit[0]
-                intercept = fit[1]
-                if slope < 0:
-                    if x1 < left_region_boundary and x2 < left_region_boundary:
-                        left_fit.append((slope, intercept))
-                else:
-                    if x1 > right_region_boundary and x2 > right_region_boundary:
-                        right_fit.append((slope, intercept))
+            fit = np.polyfit((x1, x2), (y1, y2), 1)
+            slope = fit[0]
+            intercept = fit[1]
+            if slope < 0:
+                if x1 < left_region_boundary and x2 < left_region_boundary:
+                    left_fit.append((slope, intercept))
+            else:
+                if x1 > right_region_boundary and x2 > right_region_boundary:
+                    right_fit.append((slope, intercept))
 
     left_fit_average = np.average(left_fit, axis=0)
     if len(left_fit) > 0:
-        lane_lines.append(make_points(cropped_edges, left_fit_average))
+        lane_lines.append(make_points(frame, left_fit_average))
 
     right_fit_average = np.average(right_fit, axis=0)
     if len(right_fit) > 0:
-        lane_lines.append(make_points(cropped_edges, right_fit_average))
+        lane_lines.append(make_points(frame, right_fit_average))
 
     logging.debug('lane lines: %s' % lane_lines)  # [[[316, 720, 484, 432]], [[1009, 720, 718, 432]]]
 
     return lane_lines
-
 
 def compute_steering_angle(frame, lane_lines):
     """ Find the steering angle based on lane line coordinate
