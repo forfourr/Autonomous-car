@@ -2,7 +2,7 @@ import cv2
 import time
 import sys
 from Servo import Servo
-from front_wheel_curve_test import Front_wheels
+from front_wheels import Front_Wheels
 # 카메라 열기
 cap = cv2.VideoCapture(-1)
 
@@ -16,9 +16,9 @@ a.write(90)
 
 # 주행
 
-front_wheels = Front_wheels(channel=0)
+front_wheels = Front_Wheels(channel=0)
 
-front_wheels.to90()
+front_wheels.turn_straight
 
 
 
