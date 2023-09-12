@@ -68,14 +68,14 @@ def detect_edges(frame):
     
 
     # cropped_image = gray[240:400,0:640]
-    cropped_image = gray[336:480,0:640]
+    cropped_image = gray[300:480,0:640]
     
 
-
+    mask = cv2.inRange(cropped_image, 120, 255)
     
     # masked_image = cv2.bitwise_and(frame, cropped_image)
     
-    img_blurred = cv2.GaussianBlur(cropped_image, ksize = (21,21), sigmaX= 0)
+    img_blurred = cv2.GaussianBlur(mask, ksize = (21,21), sigmaX= 0)
     
     cropped_edges = cv2.adaptiveThreshold(
     img_blurred,
@@ -211,7 +211,7 @@ def display_lines(frame, lines, line_color=(0, 255, 0), line_width=10):
         for line in lines:
             for x1, y1, x2, y2 in line:
                 if abs(y1-y2) > 10:
-                    cv2.line(line_image, (x1, y1+336), (x2, y2+336), line_color, line_width)
+                    cv2.line(line_image, (x1, y1+300), (x2, y2+300), line_color, line_width)
     line_image = cv2.addWeighted(frame, 0.8, line_image, 1, 1)
     
     return line_image

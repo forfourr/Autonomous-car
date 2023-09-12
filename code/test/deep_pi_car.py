@@ -5,18 +5,19 @@ import datetime
 import time
 import PCA9685
 import threading
-from hand_coded_lane_follower_230911 import HandCodedLaneFollower
+from hand_coded_lane_follower_230905 import HandCodedLaneFollower
 from objects_on_road_processor import ObjectsOnRoadProcessor
 
 
 _SHOW_IMAGE = True
+
 _SAVE_VIDEO = False
 
 class DeepPiCar(object):
 
     __INITIAL_SPEED = 0
-    __SCREEN_WIDTH = 320
-    __SCREEN_HEIGHT = 240
+    __SCREEN_WIDTH = 640
+    __SCREEN_HEIGHT = 480
 
     def __init__(self):
         """ Init camera and wheels"""
@@ -102,40 +103,40 @@ class DeepPiCar(object):
         self.back_wheels.speed = speed
         while self.camera.isOpened():
             start_time = time.time()
-            try:
-                _, image_lane = self.camera.read()
-                image_objs = image_lane.copy()
-                
-                # 객체 인식
-                image_objs  = self.traffic_sign_processor.process_objects_on_road(image_objs)
-                cv2.imshow('Detected Objects', image_objs)
-                #show_image('Detected Objects', image_objs)
-
-                # 주행
-                image_lane = self.lane_follower.follow_lane(image_lane)
-
-                # FPS
-                elapse_time = time.time() - start_time
-                fps = 1/elapse_time
-
-                cv2.putText(image_lane, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
-                #show_image('Lane Lines', image_lane)
-                # cv2.imshow('Detected Objects', image_objs)
-                cv2.imshow('Lane Lines', image_lane)
-
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    self.cleanup()
-                    break
-
-                if _SAVE_VIDEO:
-                    self.video_orig.write(image_lane)
-                    self.video_lane.write(image_lane)
-                    self.video_objs.write(image_objs)
+            # try:
+            _, image_lane = self.camera.read()
+            image_objs = image_lane.copy()
             
-            except Exception as e:
-                print('Exception:', e)
-                print('fail')
+            # 객체 인식
+            image_objs  = self.traffic_sign_processor.process_objects_on_road(image_objs)
+            cv2.imshow('Detected Objects', image_objs)
+            #show_image('Detected Objects', image_objs)
+
+            # 주행
+            image_lane = self.lane_follower.follow_lane(image_lane)
+
+            # FPS
+            elapse_time = time.time() - start_time
+            fps = 1/elapse_time
+
+            cv2.putText(image_lane, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            #show_image('Lane Lines', image_lane)
+            # cv2.imshow('Detected Objects', image_objs)
+            cv2.imshow('Lane Lines', image_lane)
+
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                self.cleanup()
                 break
+
+            if _SAVE_VIDEO:
+                self.video_orig.write(image_lane)
+                self.video_lane.write(image_lane)
+                self.video_objs.write(image_objs)
+            
+            # except Exception as e:
+            #     print('Exception:', e)
+            #     print('fail')
+            #     break
 
 
 
