@@ -39,7 +39,7 @@ class DeepPiCar(object):
         # 카메라 좌우
         self.pan_servo = picar.Servo.Servo(1)
         self.pan_servo.offset = -30  # calibrate servo to center
-        self.pan_servo.write(90)
+        self.pan_servo.write(100)
 
         # 카메라 높이
         self.tilt_servo = picar.Servo.Servo(2)
@@ -73,7 +73,7 @@ class DeepPiCar(object):
         logging.info('Created a DeepPiCar')
 
     def create_video_recorder(self, path):
-        return cv2.VideoWriter(path, self.fourcc, 20.0, (self.__SCREEN_WIDTH, self.__SCREEN_HEIGHT))
+        return cv2.VideoWriter(path, self.fourcc, 15.0, (self.__SCREEN_WIDTH, self.__SCREEN_HEIGHT))
 
     def __enter__(self):
         """ Entering a with statement """
@@ -110,8 +110,8 @@ class DeepPiCar(object):
             image_objs = img.copy()
             
             # 객체 인식
-            # image_objs  = self.traffic_sign_processor.process_objects_on_road(image_objs)
-            # cv2.imshow('Detected Objects', image_objs)
+            image_objs  = self.traffic_sign_processor.process_objects_on_road(image_objs)
+            cv2.imshow('Detected Objects', image_objs)
             #show_image('Detected Objects', image_objs)
 
             # 주행
@@ -122,9 +122,11 @@ class DeepPiCar(object):
             fps = 1/elapse_time
 
             cv2.putText(image_lane, f"FPS: {fps:.2f}", (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
+            cv2.imshow('Lane Lines', image_lane)
+            
             #show_image('Lane Lines', image_lane)
             # cv2.imshow('Detected Objects', image_objs)
-            cv2.imshow('Lane Lines', image_lane)
+            
 
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 self.cleanup()
@@ -133,7 +135,7 @@ class DeepPiCar(object):
             if _SAVE_VIDEO:
                 self.video_orig.write(img)
                 self.video_lane.write(image_lane)
-                #self.video_objs.write(image_objs)
+                self.video_objs.write(image_objs)
             
             # except Exception as e:
             #     print('Exception:', e)

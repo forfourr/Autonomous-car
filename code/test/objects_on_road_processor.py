@@ -37,7 +37,7 @@ class ObjectsOnRoadProcessor(object):
         self.height = 240
         self.width = 320
         
-        # model='/home/pi/AI-self-driving-RC-car/code/test/data/mobilenet_v2_ph_new.tflite'
+        # model='/home/pi/AI-self-driving-RC-car/code/test/data/mobilenet_v2_ph.tflite'
         # label_path='/home/pi/AI-self-driving-RC-car/code/test/data/labelmap_ph_new.txt'
         model='/home/pi/AI-self-driving-RC-car/code/test/data/mobilenet_v2_haram.tflite'
         label_path='/home/pi/AI-self-driving-RC-car/code/test/data/labelmap_haram_new.txt'
@@ -49,9 +49,9 @@ class ObjectsOnRoadProcessor(object):
         self.traffic_objects = {0: keep(),          # Traffic Light
                                 1: SpeedLimit(15),  # limit sign
                                 2: StopSign(),      # Stop sign
-                                3: SpeedLimit(0),   # animal
-                                4: SpeedLimit(0),   # car
-                                5: SpeedLimit(0),   # human
+                                3: Person(),   # animal
+                                4: Person(),   # car
+                                5: Person(),   # human
                                 6: keep()}          # turn_sign
 
         # self.traffic_objects = {0: SpeedLimit(22),          # liit sign
@@ -105,7 +105,7 @@ class ObjectsOnRoadProcessor(object):
         height, width, channels = cv2_im.shape
         self.scale_x, self.scale_y = width / self.inference_size[0], height / self.inference_size[1]
         for obj in objs:
-            if obj.score >= 0.5:
+            if obj.score >= 0.8:
                 bbox = obj.bbox.scale(self.scale_x, self.scale_y)
                 x0, y0 = int(bbox.xmin), int(bbox.ymin)
                 x1, y1 = int(bbox.xmax), int(bbox.ymax)
