@@ -5,14 +5,20 @@ from Servo import Servo
 from front_wheels import Front_Wheels
 # 카메라 열기
 cap = cv2.VideoCapture(-1)
-
+time_now= time.time()
 # 비디오 코덱 설정
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/new_track.avi', fourcc, 20.0, (640, 480))
-# stereo 설정
-a = Servo(1)
+out = cv2.VideoWriter(f'/home/pi/AI-self-driving-RC-car/code/test/data/tmp/obj_source_{time_now}.avi', fourcc, 20.0, (640, 480))
+
+# 카메라 높이
+a = Servo(2)
 a.setup()
-a.write(90)
+a.write(100)
+
+# 카메라 좌우
+b = Servo(1)
+b.setup()
+b.write(95)
 
 # 주행
 

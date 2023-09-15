@@ -23,8 +23,8 @@ class ObjectsOnRoadProcessor(object):
 
     def __init__(self,
                  car=None,
-                 speed_limit=40,
-                 top_k=10, threshold=0.1,
+                 speed_limit=33,
+                 top_k=5, threshold=0.1,
                  video_path=None):
         self.top_k = top_k
         self.threshold = threshold
@@ -37,37 +37,32 @@ class ObjectsOnRoadProcessor(object):
         self.height = 240
         self.width = 320
         
+        # model='/home/pi/AI-self-driving-RC-car/code/test/data/mobilenet_v2_ph_new.tflite'
+        # label_path='/home/pi/AI-self-driving-RC-car/code/test/data/labelmap_ph_new.txt'
         model='/home/pi/AI-self-driving-RC-car/code/test/data/mobilenet_v2_haram.tflite'
-        label_path='/home/pi/AI-self-driving-RC-car/code/test/data/labelmap_haram.txt'
+        label_path='/home/pi/AI-self-driving-RC-car/code/test/data/labelmap_haram_new.txt'
+
 
         self.interpreter, self.inference_size = self.make_interpreter(model)
         self.labels = self.read_label_file(label_path)
         
-        # self.traffic_objects = {0: GreenTrafficLight(),
-        #                         1: Person(),
-        #                         2: RedTrafficLight(),
-        #                         3: SpeedLimit(25),
-        #                         4: SpeedLimit(40),
-        #                         5: StopSign()}
-        
         self.traffic_objects = {0: keep(),          # Traffic Light
                                 1: SpeedLimit(15),  # limit sign
-                                2: StopSign(),      # stop sign
-                                3: StopSign(),      # animal
-                                4: StopSign(),      # car
-                                5: StopSign(),      # human
-                                6: Turn_right(),    # right_sign
-                                7: Turn_left()}     # left_sign
+                                2: StopSign(),      # Stop sign
+                                3: SpeedLimit(0),   # animal
+                                4: SpeedLimit(0),   # car
+                                5: SpeedLimit(0),   # human
+                                6: keep()}          # turn_sign
+
+        # self.traffic_objects = {0: SpeedLimit(22),          # liit sign
+        #                         1: StopSign(),  # stop sign
+        #                         2: SpeedLimit(0),      # car
+        #                         3: SpeedLimit(0)}      # human
         '''
-        Traffic Light
         limit sign
         Stop sign
-        animal
-        car
-        human
-        right_sign
-        left_sign
-        EOF                
+        Car
+        human               
         '''
 
     def make_interpreter(self,model):
@@ -102,7 +97,7 @@ class ObjectsOnRoadProcessor(object):
         cv2_im = self.append_objs_to_img(cv2_im, objs)
 
         # 제어
-        #self.control_car(objs)
+        self.control_car(objs)
 
         return cv2_im
 
@@ -110,17 +105,18 @@ class ObjectsOnRoadProcessor(object):
         height, width, channels = cv2_im.shape
         self.scale_x, self.scale_y = width / self.inference_size[0], height / self.inference_size[1]
         for obj in objs:
-            bbox = obj.bbox.scale(self.scale_x, self.scale_y)
-            x0, y0 = int(bbox.xmin), int(bbox.ymin)
-            x1, y1 = int(bbox.xmax), int(bbox.ymax)
-            
-    
-            percent = int(100 * obj.score)
-            label = '{}% {}'.format(percent, self.labels.get(obj.id, obj.id))
-    
-            cv2_im = cv2.rectangle(cv2_im, (x0, y0), (x1, y1), (0, 255, 0), 2)
-            cv2_im = cv2.putText(cv2_im, label, (x0, y0+30),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 0), 2)
+            if obj.score >= 0.5:
+                bbox = obj.bbox.scale(self.scale_x, self.scale_y)
+                x0, y0 = int(bbox.xmin), int(bbox.ymin)
+                x1, y1 = int(bbox.xmax), int(bbox.ymax)
+                
+        
+                percent = int(100 * obj.score)
+                label = '{}% {}'.format(percent, self.labels.get(obj.id, obj.id))
+        
+                cv2_im = cv2.rectangle(cv2_im, (x0, y0), (x1, y1), (0, 255, 0), 2)
+                cv2_im = cv2.putText(cv2_im, label, (x0, y0+30),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 0, 0), 2)
         return cv2_im
 
     def control_car(self, objects):
@@ -134,6 +130,7 @@ class ObjectsOnRoadProcessor(object):
         contain_stop_sign = False
         for obj in objects:
             obj_label = self.labels[obj.id]
+            processor = self.traffic_objects[obj.id]
 
             bbox = obj.bbox.scale(self.scale_x, self.scale_y)
             y0 = int(bbox.ymin)
@@ -141,7 +138,7 @@ class ObjectsOnRoadProcessor(object):
             obj_height= y1 - y0
             ## obj Object(id=6, score=0.22265625, bbox=BBox(xmin=62, ymin=0, xmax=287, ymax=28)) <class 'pycoral.adapters.detect.Object'>
 
-            processor = self.traffic_objects[obj.id]
+
             if processor.is_close_by(obj, self.height, obj_height):
                 processor.set_car_state(car_state)
                 #print(f "label:{obj_label}, processor:{processor}, \n is_lclosed_by:{ processor.is_close_by(obj, self.height)}")
@@ -151,7 +148,7 @@ class ObjectsOnRoadProcessor(object):
                 contain_stop_sign = True
 
         if not contain_stop_sign:
-            self.traffic_objects[5].clear()
+            self.traffic_objects[2].clear()
 
         self.resume_driving(car_state)
 
@@ -176,12 +173,8 @@ class ObjectsOnRoadProcessor(object):
         if self.car is not None:
             logging.debug("Actually setting car speed to %d" % speed)
             self.car.back_wheels.speed = speed
-            
-    # front wheel 추가
-    def set_turning(self, turning):
-        self.turning = turning
-        if self.car is not None:
-            self.car.front_wheels.turning_offset = turning
+        
+
 
 
 
@@ -225,7 +218,9 @@ def test_video(video_file):
     # video_type = cv2.VideoWriter_fourcc(*'XVID')
 
     # video_overlay = cv2.VideoWriter("%s_overlay_%s.avi" % (video_file, date_str), video_type, 20.0, (320, 240))
-    
+    import picar
+    back_wheels = picar.back_wheels.Back_Wheels()
+    back_wheels.speed = 32
     
     while cap.isOpened():
         start_time = time.time()
@@ -262,9 +257,9 @@ if __name__ == '__main__':
     # test_photo('/home/pi/DeepPiCar/driver/data/objects/limit_25.jpg')
     # test_photo('/home/pi/DeepPiCar/driver/data/objects/green_light.jpg')
     # test_photo('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/obj_test.png')
-    # test_video('/home/pi/AI-self-driving-RC-car/code/test/data/tmp/object2.avi')
+    test_video(-1)
 
     # test stop sign, which carries state
     #test_stop_sign()
-    obj = ObjectsOnRoadProcessor()
-    obj.set_speed(40)
+    # obj = ObjectsOnRoadProcessor()
+    # obj.set_speed(40)

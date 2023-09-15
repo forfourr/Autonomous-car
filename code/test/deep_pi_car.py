@@ -5,13 +5,13 @@ import datetime
 import time
 import PCA9685
 import threading
-from hand_coded_lane_follower_230905 import HandCodedLaneFollower
+from hand_coded_lane_follower_230915 import HandCodedLaneFollower
 from objects_on_road_processor import ObjectsOnRoadProcessor
 
 
 _SHOW_IMAGE = True
 
-_SAVE_VIDEO = False
+_SAVE_VIDEO = True
 
 class DeepPiCar(object):
 
@@ -36,13 +36,15 @@ class DeepPiCar(object):
         self.camera.set(3, self.__SCREEN_WIDTH)
         self.camera.set(4, self.__SCREEN_HEIGHT)
 
+        # 카메라 좌우
         self.pan_servo = picar.Servo.Servo(1)
         self.pan_servo.offset = -30  # calibrate servo to center
         self.pan_servo.write(90)
 
+        # 카메라 높이
         self.tilt_servo = picar.Servo.Servo(2)
-        self.tilt_servo.offset = 20  # calibrate servo to center
-        self.tilt_servo.write(90)
+        self.tilt_servo.offset = 20  
+        self.tilt_servo.write(95)
 
         logging.debug('Set up back wheels')
         self.back_wheels = picar.back_wheels.Back_Wheels()
@@ -104,16 +106,16 @@ class DeepPiCar(object):
         while self.camera.isOpened():
             start_time = time.time()
             # try:
-            _, image_lane = self.camera.read()
-            image_objs = image_lane.copy()
+            _, img = self.camera.read()
+            image_objs = img.copy()
             
             # 객체 인식
-            image_objs  = self.traffic_sign_processor.process_objects_on_road(image_objs)
-            cv2.imshow('Detected Objects', image_objs)
+            # image_objs  = self.traffic_sign_processor.process_objects_on_road(image_objs)
+            # cv2.imshow('Detected Objects', image_objs)
             #show_image('Detected Objects', image_objs)
 
             # 주행
-            image_lane = self.lane_follower.follow_lane(image_lane)
+            image_lane = self.lane_follower.follow_lane(img)
 
             # FPS
             elapse_time = time.time() - start_time
@@ -129,9 +131,9 @@ class DeepPiCar(object):
                 break
 
             if _SAVE_VIDEO:
-                self.video_orig.write(image_lane)
+                self.video_orig.write(img)
                 self.video_lane.write(image_lane)
-                self.video_objs.write(image_objs)
+                #self.video_objs.write(image_objs)
             
             # except Exception as e:
             #     print('Exception:', e)
@@ -151,7 +153,7 @@ class DeepPiCar(object):
 
 def main():
     with DeepPiCar() as car:
-            car.drive(40)
+            car.drive(33)
 
 
 if __name__ == '__main__':

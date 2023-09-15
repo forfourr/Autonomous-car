@@ -1,9 +1,0 @@
-Traffic Light
-limit sign
-Stop sign
-animal
-car
-human
-right_sign
-left_sign
-EOF

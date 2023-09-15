@@ -1,0 +1,8 @@
+Traffic Light
+limit sign
+Stop sign
+animal
+car
+human
+turn_sign
+EOF

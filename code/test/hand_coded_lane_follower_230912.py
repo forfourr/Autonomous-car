@@ -1,21 +1,10 @@
-"""
-#23.09.11 modification
-1. original : hand_coded_lane_follower_230905.py
-
-변경사항 
-1. showimage함수 부활 : hand_coded_lane_follower.py
-
-"""
-
-
 import cv2
 import numpy as np
 import logging
 import math
+import datetime
 import sys
 import os
-import datetime
-
 
 _SHOW_IMAGE = False
 
@@ -28,27 +17,25 @@ class HandCodedLaneFollower(object):
         self.curr_steering_angle = 90
 
     def follow_lane(self, frame):
-        # Main entry point of the lane follower
-        show_image("orig", frame)
-        
-        lane_lines, frame = detect_lane(frame)
-        final_frame = self.steer(frame, lane_lines)
+
+        lane_lines, lane_lines_image = detect_lane(frame)
+        final_frame = self.steer(lane_lines_image, lane_lines)
 
         return final_frame
 
-    def steer(self, frame, lane_lines):
+    def steer(self, lane_lines_image, lane_lines):
         logging.debug('steering...')
         if len(lane_lines) == 0:
             logging.error('No lane lines detected, nothing to do.')
-            return frame
+            return lane_lines_image
 
-        new_steering_angle = compute_steering_angle(frame, lane_lines)
+        new_steering_angle = compute_steering_angle(lane_lines_image, lane_lines)
         self.curr_steering_angle = stabilize_steering_angle(self.curr_steering_angle, new_steering_angle, len(lane_lines))
 
         if self.car is not None:
             self.car.front_wheels.turn(self.curr_steering_angle)
-        curr_heading_image = display_heading_line(frame, self.curr_steering_angle)
-        show_image("heading", curr_heading_image)
+        curr_heading_image = display_heading_line(lane_lines_image, self.curr_steering_angle)
+        # show_image("heading", curr_heading_image)
 
         return curr_heading_image
 
@@ -59,16 +46,16 @@ class HandCodedLaneFollower(object):
 def detect_lane(frame):
     logging.debug('detecting lane lines...')
 
-    cropped_image,cropped_edges = detect_edges(frame)
-    show_image('edges cropped', cropped_edges)
+    cropped_edges = detect_edges(frame)
+   
 
     line_segments = detect_line_segments(cropped_edges)
-    line_segment_image = display_lines(frame, line_segments)
-    show_image("line segments", line_segment_image)
+    # line_segment_image = display_lines(frame, line_segments)
+    
 
     lane_lines = average_slope_intercept(cropped_edges, line_segments)
     lane_lines_image = display_lines(frame, lane_lines)
-    show_image("lane lines", lane_lines_image)
+    # print("display", lane_lines_image)
 
 
     return lane_lines, lane_lines_image
@@ -76,18 +63,15 @@ def detect_lane(frame):
 
 def detect_edges(frame):
     
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     
-    cropped_image = frame[336:480, :]
-    show_image("cropped_image", cropped_image)
+
+    cropped_image = gray[336:480,0:640]
+
     
-    gray = cv2.cvtColor(cropped_image, cv2.COLOR_BGR2GRAY)
-    show_image("gray", gray)
-
-
-    mask = cv2.inRange(gray, 120, 255)
     # masked_image = cv2.bitwise_and(frame, cropped_image)
     
-    img_blurred = cv2.GaussianBlur(mask, ksize = (19,19), sigmaX= 0)
+    img_blurred = cv2.GaussianBlur(cropped_image, ksize = (21,21), sigmaX= 0)
     
     cropped_edges = cv2.adaptiveThreshold(
     img_blurred,
@@ -96,9 +80,8 @@ def detect_edges(frame):
     thresholdType = cv2.THRESH_BINARY_INV,
     blockSize = 23, # block size와 c의 값을 이용하여 controus의 영역을 강조함.
     C = 7)
-    show_image("cropped_edges", cropped_edges)
     
-    return cropped_image,cropped_edges
+    return cropped_edges
 
 
 
@@ -109,12 +92,6 @@ def detect_line_segments(cropped_edges):
     min_threshold = 10  # minimal of votes
     line_segments = cv2.HoughLinesP(cropped_edges, rho, angle, min_threshold, np.array([]), minLineLength=8,
                                     maxLineGap=3)
-    
-    if line_segments is not None:
-        for line_segment in line_segments:
-            logging.debug('detected line_segment:')
-            logging.debug("%s of length %s" % (line_segment, length_of_line_segment(line_segment[0])))
-
 
     return line_segments
 
@@ -130,7 +107,7 @@ def average_slope_intercept(cropped_edges, line_segments):
         logging.info('No line_segment segments detected')
         return lane_lines
 
-    height, width = cropped_edges.shape
+    height, width= cropped_edges.shape
     left_fit = []
     right_fit = []
 
@@ -178,8 +155,10 @@ def compute_steering_angle(frame, lane_lines):
     height,width ,  _= frame.shape
     if len(lane_lines) == 1:
         logging.debug('Only detected one lane line, just follow it. %s' % lane_lines[0])
-        x1, _, x2, _ = lane_lines[0][0]
+        x1, y1, x2, y2 = lane_lines[0][0]
         x_offset = x2 - x1
+        y_offset = abs(y2 - y1)
+        
     else:
         _, _, left_x2, _ = lane_lines[0][0]
         _, _, right_x2, _ = lane_lines[1][0]
@@ -187,8 +166,8 @@ def compute_steering_angle(frame, lane_lines):
         mid = int(width / 2 * (1 + camera_mid_offset_percent))
         x_offset = (left_x2 + right_x2) / 2 - mid
 
-    # find the steering angle, which is angle between navigation direction to end of center line
-    y_offset = int(height / 2)
+        # find the steering angle, which is angle between navigation direction to end of center line
+        y_offset = int(height / 2)
 
     angle_to_mid_radian = math.atan(x_offset / y_offset)  # angle (in radian) to center vertical line
     angle_to_mid_deg = int(angle_to_mid_radian * 180.0 / math.pi)  # angle (in degrees) to center vertical line
@@ -198,7 +177,8 @@ def compute_steering_angle(frame, lane_lines):
     return steering_angle
 
 
-def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_of_lane_lines, max_angle_deviation_two_lines=5, max_angle_deviation_one_lane=1):
+
+def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_of_lane_lines, max_angle_deviation_two_lines=5, max_angle_deviation_one_lane=10):
     """
     Using last steering angle to stabilize the steering angle
     This can be improved to use last N angles, etc
@@ -210,6 +190,8 @@ def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_of_lan
     else :
         # if only one lane detected, don't deviate too much
         max_angle_deviation = max_angle_deviation_one_lane
+        #new_steering_angle += 3
+    
     
     angle_deviation = new_steering_angle - curr_steering_angle
     if abs(angle_deviation) > max_angle_deviation:
@@ -238,7 +220,7 @@ def display_lines(frame, lines, line_color=(0, 255, 0), line_width=10):
 
 def display_heading_line(frame, steering_angle, line_color=(0, 0, 255), line_width=5, ):
     heading_image = np.zeros_like(frame)
-    height, width,  _ = frame.shape
+    height, width, _ = frame.shape
 
     # figure out the heading line from steering angle
     # heading line (x1,y1) is always center bottom of the screen
@@ -271,7 +253,7 @@ def show_image(title, frame, show=_SHOW_IMAGE):
 
 
 def make_points(frame, line):
-    height,width,    = frame.shape
+    height, width = frame.shape
     slope, intercept = line
     y1 = height  # bottom of the frame
     y2 = int(y1 * 1 / 2)  # make points from middle of the frame down
@@ -295,56 +277,46 @@ def test_photo(file):
 
 
 def test_video(video_file):
-    now = datetime.datetime.now()
     lane_follower = HandCodedLaneFollower()
     cap = cv2.VideoCapture(video_file)
     os.makedirs("frame_image", exist_ok=True)
     folder_name = video_file.split(".")[1].split("/")[1]
-    os.makedirs(f"./frame_image/({now.strftime('%Y-%m-%d')}){folder_name}", exist_ok=True)
-    os.makedirs(f"./video_record/({now.strftime('%Y-%m-%d')}){folder_name}", exist_ok=True)
-    fps = cap.get(cv2.CAP_PROP_FPS) # 카메라에 따라 값이 정상적, 비정상적
+    os.makedirs(f"./frame_image/{folder_name}", exist_ok=True)
+    
+    # # skip first second of video.
+    # for i in range(3):
+    #     _, frame = cap.read()
 
+    video_type = cv2.VideoWriter_fourcc(*'mp4v')
+    video_overlay = cv2.VideoWriter("%s_overlay.mp4" % (video_file), video_type, 20.0, (320, 336))
+    try:
+        i = 0
+        while cap.isOpened():
+            _, frame = cap.read()
+            
+            print('frame %s' % i )
+            combo_image= lane_follower.follow_lane(frame)
+            
+            cv2.imwrite("./frame_image/%s/%s_%03d_%03d.png" % (folder_name,folder_name, i, lane_follower.curr_steering_angle), frame)
+            
+            cv2.imwrite("./frame_image/%s/%s_overlay_%03d.png" % (folder_name,folder_name, i), combo_image)
+            video_overlay.write(combo_image)
+            cv2.imshow("Road with Lane line", combo_image)
 
-
-    i=0
-    if cap.isOpened():
-
-        fps = cap.get(cv2.CAP_PROP_FPS) # 카메라에 따라 값이 정상적, 비정상적
-        width = cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-        size = (int(width), int(height))   
-        video_type = cv2.VideoWriter_fourcc(*'mp4v')
-        video_overlay = cv2.VideoWriter(f"./video_record/({now.strftime('%Y-%m-%d')}){folder_name}/{folder_name}_overlay.mp4",video_type ,fps, size) # size 부분에 임의 숫자를 넣을 경우, 맞지 않아 동영상 frame이 저장되지 않는다!
-
-        while True:
-            ret, frame = cap.read()
-            if ret:
-
-                print('frame %s' % i )
-                combo_image= lane_follower.follow_lane(frame)
-                
-                cv2.imshow("Road with Lane line", combo_image)
-                cv2.imwrite(f"./frame_image/({now.strftime('%Y-%m-%d')}){folder_name}/{folder_name}_{i}_{lane_follower.curr_steering_angle}.png",frame)
-
-                cv2.imwrite(f"./frame_image/({now.strftime('%Y-%m-%d')}){folder_name}/{folder_name}_overlay_{i}.png", combo_image)
-                video_overlay.write(combo_image)
-
-
-                i += 1
-                if cv2.waitKey(10) & 0xFF == ord('q'):
-                    break
-            else:
+            i += 1
+            if cv2.waitKey(10) & 0xFF == ord('q'):
                 break
+    finally:
+        cap.release()
+        video_overlay.release()
+        cv2.destroyAllWindows()
 
-
-    cap.release()
-    video_overlay.release()
-    cv2.destroyAllWindows()
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
 
-    test_video("./RC_car_new_track.mp4")
+    test_video("./RC_car_last.mp4")
+
     # test_photo("./frame_image/RC_car_230822/RC_car_230822_305_086.png")
     #test_photo(sys.argv[1])
     #test_video(sys.argv[1])

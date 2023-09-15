@@ -17,7 +17,7 @@ class TrafficObject(object):
 class keep(TrafficObject):
     pass
 
-
+'''
 class RedTrafficLight(TrafficObject):
 
     def set_car_state(self, car_state):
@@ -30,8 +30,8 @@ class GreenTrafficLight(TrafficObject):
     def set_car_state(self, car_state):
         logging.debug('green light: make no changes')
 
-
-class Turn_right(TrafficObject):
+'''
+class Turn(TrafficObject):
     pass
 class Turn_left(TrafficObject):
     pass
