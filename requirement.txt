@@ -1,0 +1,9 @@
+absl-py==1.4.0
+numpy==1.21.6
+opencv-contrib-python==4.1.0.25
+Pillow==9.5.0
+pkg-resources==0.0.0
+pycoral==2.0.0
+RPi.GPIO==0.7.1
+smbus==1.1.post2
+tflite-runtime==2.5.0.post1
