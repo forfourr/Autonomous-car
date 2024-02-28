@@ -1,0 +1,18 @@
+<hand_coded_lane_follower code procedure>
+
+############################
+# Frame processing steps
+############################
+- def detect_lane(frame)
+1. 주어진 영상(이미지)을 HSV로 변환한 뒤, cv2.inRange()와 cv2.Canny 함수를 활용하여 모든 윤곽선을 추출.
+- def detect_edges(frame)
+2. 전체 이미지에서 line을 나타내는 영역만을 따로 표시한 뒤, 나머지는 crop을 통해 제외
+- def region_of_interest(canny):
+3. 허프 방식을 이용하여 추출된 윤곽선과 좌표들로부터 차선으로 보여지는 직선을 반환(cv2.HoughLinesP는 x1,y1,x2,y2 총 4개의 값을 반환하는데 이를 직선의 형태로 그어진다고 보면됨.)
+- def detect_line_segments(cropped_edges):
+4. 보여지는 차선의 각도를 기준으로 보여지는 보여지는 lane의 분포가 특정 임계값을 넘길  경우, 양자택일로 하나의 line을 선택함
+- def average_slope_intercept(frame, line_segments)
+5. 선택된 lane을 기반으로 도로 중앙으로 가기 위해 RC카와 새로운조향각을 조정
+- def compute_steering_angle(frame, lane_lines):
+6. 새로운 조향각과 기존의 조향각을 비교 후, 안정화 작업 진행.
+-def stabilize_steering_angle(curr_steering_angle, new_steering_angle, num_of_lane_lines, max_angle_deviation_two_lines=5, max_angle_deviation_one_lane=1):
